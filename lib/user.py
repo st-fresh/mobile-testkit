@@ -1,10 +1,6 @@
 import requests
 import concurrent.futures
 import json
-import pprint
-import copy_reg
-import types
-import time
 import base64
 import uuid
 import re
@@ -13,6 +9,7 @@ from requests.adapters import HTTPAdapter
 from requests import Session, exceptions
 from collections import defaultdict
 from scenarioprinter import ScenarioPrinter
+from lib import settings
 
 scenario_printer = ScenarioPrinter()
 
@@ -30,8 +27,6 @@ class User:
         self._auth = auth.decode("UTF-8")
         self._headers = {'Content-Type': 'application/json', "Authorization": "Basic {}".format(self._auth)}
 
-        self._request_timeout = 30
-
     def __str__(self):
         return "USER: name={0} password={1} db={2} channels={3} cache_num={4}".format(self.name, self.password, self.db, self.channels, len(self.cache))
 
@@ -47,7 +42,7 @@ class User:
             doc_body["channels"] = self.channels
         body = json.dumps(doc_body)
 
-        resp = session.put(doc_url, headers=self._headers, data=body, timeout=self._request_timeout)
+        resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
         scenario_printer.print_status(resp)
         resp.raise_for_status()
 
@@ -69,7 +64,7 @@ class User:
         docs["docs"] = doc_list
         data = json.dumps(docs)
 
-        r = requests.post("{0}/{1}/_bulk_docs".format(self.target.url, self.db), headers=self._headers, data=data, timeout=self._request_timeout)
+        r = requests.post("{0}/{1}/_bulk_docs".format(self.target.url, self.db), headers=self._headers, data=data, timeout=settings.HTTP_REQ_TIMEOUT)
         scenario_printer.print_status(r)
         r.raise_for_status()
 
@@ -87,7 +82,7 @@ class User:
             doc_names = ["test-" + str(i) for i in range(num_docs)]
 
         if not bulk:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
                 future_to_docs = {executor.submit(self.add_doc, doc): doc for doc in doc_names}
                 for future in concurrent.futures.as_completed(future_to_docs):
                     doc = future_to_docs[future]
@@ -96,7 +91,7 @@ class User:
                     except Exception as exc:
                         print('Generated an exception while adding doc_id : %s %s' % (doc, exc))
         else:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
                 future = [executor.submit(self.add_bulk_docs, doc_names)]
                 for f in concurrent.futures.as_completed(future):
                     try:
@@ -111,7 +106,7 @@ class User:
 
         for i in range(num_revision):
             doc_url = self.target.url + '/' + self.db + '/' + doc_id
-            resp = requests.get(doc_url, headers=self._headers, timeout=self._request_timeout)
+            resp = requests.get(doc_url, headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
     
             if resp.status_code == 200:
                 data = resp.json()
@@ -123,7 +118,8 @@ class User:
                 adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=9, backoff_factor=0.2, status_forcelist=[500, 503]))
                 session.mount("http://", adapter)
 
-                put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=self._request_timeout)
+                put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+
                 if put_resp.status_code == 201:
                     data = put_resp.json()
                     if data["rev"]:
@@ -134,7 +130,7 @@ class User:
             resp.raise_for_status()
                 
     def update_docs(self, num_revs_per_doc=1):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
             future_to_docs = {executor.submit(self.update_doc, doc_id, num_revs_per_doc): doc_id for doc_id in self.cache.keys()}
             
             for future in concurrent.futures.as_completed(future_to_docs):
@@ -192,7 +188,7 @@ class User:
                 raise Exception("Invalid _changes filter type")
             params["filter"] = filter
 
-        r = requests.get("{}/{}/_changes".format(self.target.url, self.db), headers=self._headers, params=params, timeout=self._request_timeout)
+        r = requests.get("{}/{}/_changes".format(self.target.url, self.db), headers=self._headers, params=params, timeout=settings.HTTP_REQ_TIMEOUT)
         r.raise_for_status()
 
         obj = json.loads(r.text)

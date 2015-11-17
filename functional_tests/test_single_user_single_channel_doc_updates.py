@@ -28,12 +28,7 @@ def test_single_user_single_channel_doc_updates(cluster, num_docs, num_revisions
 
     admin = Admin(sgs[0])
 
-    admin.register_user(target=sgs[0], db="db", name=username, password=password, channels=channels)
-
-    users = admin.get_users()
-
-    single_user = users[username]
-    assert len(users) == 1
+    single_user = admin.register_user(target=sgs[0], db="db", name=username, password=password, channels=channels)
 
     # Not using bulk docs
     single_user.add_docs(num_docs)
