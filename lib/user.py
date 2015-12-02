@@ -98,6 +98,7 @@ class User:
 
     def add_docs(self, num_docs, bulk=False, name_prefix=None):
 
+        added_docs = []
         # If no name_prefix is specified, use uuids for doc_names
         if name_prefix is None:
             doc_names = [str(uuid.uuid4()) for _ in range(num_docs)]
@@ -111,6 +112,7 @@ class User:
                     doc = future_to_docs[future]
                     try:
                         doc_id = future.result()
+                        added_docs.append(doc_id)
                     except Exception as exc:
                         print('Generated an exception while adding doc_id : %s %s' % (doc, exc))
         else:
@@ -118,16 +120,16 @@ class User:
                 future = [executor.submit(self.add_bulk_docs, doc_names)]
                 for f in concurrent.futures.as_completed(future):
                     try:
-                        doc_list = f.result()
-                        #print(doc_list)
+                        bulk_doc_list = f.result()
+                        added_docs.extend(bulk_doc_list)
                     except Exception as e:
                         print("Error adding bulk docs: {}".format(e))
 
-        return True
+        return added_docs
 
     def update_doc(self, doc_id, num_revision=1):
 
-        updated_docs = dict()
+        updated_docs = list()
 
         for i in range(num_revision):
 
@@ -157,7 +159,7 @@ class User:
                     self.cache[doc_id] = data["rev"]
 
                     # Store updated doc to return
-                    updated_docs[doc_id] = data["rev"]
+                    updated_docs.append(doc_id)
 
                 put_resp.raise_for_status()
             resp.raise_for_status()
