@@ -129,7 +129,7 @@ class User:
 
     def update_doc(self, doc_id, num_revision=1):
 
-        updated_docs = list()
+        rev_list = list()
 
         for i in range(num_revision):
 
@@ -158,26 +158,32 @@ class User:
                     # Update revision number for stored doc id
                     self.cache[doc_id] = data["rev"]
 
-                    # Store updated doc to return
-                    updated_docs.append(doc_id)
+                    # Store updated rev to return
+                    rev_list.append(data["rev"])
 
                 put_resp.raise_for_status()
             resp.raise_for_status()
 
-        return updated_docs
+        return doc_id, rev_list
                 
     def update_docs(self, num_revs_per_doc=1):
+
+        updated_docs = dict()
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
             future_to_docs = {executor.submit(self.update_doc, doc_id, num_revs_per_doc): doc_id for doc_id in self.cache.keys()}
             
             for future in concurrent.futures.as_completed(future_to_docs):
                 doc = future_to_docs[future]
                 try:
-                    doc_id = future.result()
+                    doc_id, rev_list = future.result()
+                    updated_docs[doc_id] = rev_list
                 except Exception as exc:
                     print('Generated an exception while updating doc_id:%s %s' % (doc, exc))
                 else:
                     print "Document:", doc, "updated successfully"
+
+        return updated_docs
 
     def get_changes(self, feed=None, limit=None, heartbeat=None, style=None,
                     since=None, include_docs=None, channels=None, filter=None):

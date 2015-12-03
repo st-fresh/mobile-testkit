@@ -12,7 +12,7 @@ from fixtures import cluster
     ("*", True, 50),
     ("ABC", False, 50)
 ])
-def test_1(cluster, user_channels, filter, limit):
+def test_overloaded_channel_cache(cluster, user_channels, filter, limit):
 
     cluster.reset(config="sync_gateway_channel_cache.json")
 
