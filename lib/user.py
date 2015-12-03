@@ -127,7 +127,7 @@ class User:
 
         return added_docs
 
-    def update_doc(self, doc_id, num_revision=1):
+    def update_doc(self, doc_id, num_revision=1, rev_id=None):
 
         rev_list = list()
 
@@ -142,21 +142,37 @@ class User:
                 # Store number of updates on the document
                 data['updates'] = int(data['updates']) + 1
 
+                # Change _rev of doc body to put a specific rev
+                if rev_id is not None:
+                    data["_rev"] = rev_id
+
                 body = json.dumps(data)
 
                 session = requests.Session()
                 adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
                 session.mount("http://", adapter)
 
-                put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+                if rev_id is not None:
+                    # allow appending to old revisions for generating conflicts
+                    params = {
+                        "new_edits": "false",
+                        "rev": rev_id
+                    }
+                    put_resp = session.put(doc_url, headers=self._headers, data=body, params=params, timeout=settings.HTTP_REQ_TIMEOUT)
+                else:
+                    put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
                 if put_resp.status_code == 201:
+
+                    print(put_resp.text)
 
                     data = put_resp.json()
                     assert "rev" in data.keys()
 
-                    # Update revision number for stored doc id
-                    self.cache[doc_id] = data["rev"]
+                    # HACK should we store the revision if updating old revisions?
+                    if rev_id is None:
+                        # Update revision number for stored doc id
+                        self.cache[doc_id] = data["rev"]
 
                     # Store updated rev to return
                     rev_list.append(data["rev"])
