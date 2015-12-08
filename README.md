@@ -212,7 +212,7 @@ $ python performance_tests/kill_gateload.py
 
 ```
 $ export PYTHONPATH=$PYTHONPATH:.
-$ python performance_tests/run_tests.py --number-pullers=0 --number-pushers=7500
+$ python performance_tests/run_tests.py --number-pullers=1000 --number-pushers=1000
 ```
 
 ### Performance test data
@@ -225,8 +225,15 @@ $ ansible-playbook performance_tests/ansible/playbooks/collect-sync-gateway-prof
 
 ## Run Functional tests
 
+By default the logs from all of the sync_gateways will be zipped and placed in your /tmp directory if a test fails. You
+can disable this behavior in functional_tests/settings
+
+
 ```
-$ ./test
+$ python run_tests.py
+$ python run_tests.py -t test_samplefile
+$ python run_tests.py -t test_samplefile::test_test1
+$ python run_tests.py -m sanity
 ```
 
 ## Running an individual functional test
@@ -238,5 +245,5 @@ $ python -m pytest --capture=no functional_tests/test_users_channels.py::test_si
 ## Collecting Sync Gateway logs
 
 ```
-$ python provision/fetch_sg_logs.py
+$ python utilities/fetch_sg_logs.py
 ```
