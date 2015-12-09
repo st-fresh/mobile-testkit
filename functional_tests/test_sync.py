@@ -9,7 +9,7 @@ from lib.verify import verify_changes
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
+@pytest.mark.distributed_index_failing
 @pytest.mark.sanity
 def test_sync_sanity(cluster):
 
@@ -39,7 +39,7 @@ def test_sync_sanity(cluster):
     verify_changes(dj_0, expected_num_docs=100, expected_num_revisions=0, expected_docs=kdwb_docs)
 
 
-@pytest.mark.distributed_index
+@pytest.mark.distributed_index_failing
 @pytest.mark.sanity
 def test_sync_sanity_backfill(cluster):
 

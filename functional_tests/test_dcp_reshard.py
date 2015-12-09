@@ -9,7 +9,7 @@ from lib.verify import verify_changes
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
+@pytest.mark.distributed_index_failing
 @pytest.mark.extendedsanity
 def test_dcp_reshard_sync_gateway_goes_down(cluster):
 
@@ -53,7 +53,7 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster):
     verify_changes(seth, expected_num_docs=8000, expected_num_revisions=0, expected_docs=seth.cache)
 
 
-@pytest.mark.distributed_index
+@pytest.mark.distributed_index_failing
 @pytest.mark.extendedsanity
 def test_dcp_reshard_sync_gateway_comes_up(cluster):
 

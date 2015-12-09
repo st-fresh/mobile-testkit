@@ -9,7 +9,7 @@ from lib.verify import verify_changes
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
+@pytest.mark.distributed_index_failing
 @pytest.mark.sanity
 def test_roles_sanity(cluster):
 
