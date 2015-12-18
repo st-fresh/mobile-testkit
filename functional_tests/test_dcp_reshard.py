@@ -47,7 +47,7 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster):
                 print("Exception thrown while adding docs: {}".format(e))
 
     # TODO better way to do this
-    time.sleep(60)
+    time.sleep(120)
 
     verify_changes(traun, expected_num_docs=2000, expected_num_revisions=0, expected_docs=traun.cache)
     verify_changes(seth, expected_num_docs=8000, expected_num_revisions=0, expected_docs=seth.cache)
