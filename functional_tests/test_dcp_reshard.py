@@ -48,7 +48,7 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster):
                     # Assert takedown was successful
                     shutdown_status = future.result()
                     assert shutdown_status == 0
-                if task_name == "adam":
+                if tag == "adam":
                     adam.update_docs(num_revs_per_doc=5000)
                     
                 print("{} Completed:".format(tag))
