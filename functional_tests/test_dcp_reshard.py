@@ -19,7 +19,9 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster):
 
     traun = admin.register_user(target=cluster.sync_gateways[1], db="db", name="traun", password="password", channels=["ABC", "NBC", "CBS"])
     seth = admin.register_user(target=cluster.sync_gateways[2], db="db", name="seth", password="password", channels=["FOX"])
+    adam = admin.register_user(target=cluster.sync_gateways[2], db="db", name="adam", password="password", channels=["FOX"])
 
+    
     print(">> Users added")
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -35,6 +37,10 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster):
         print(">>> Adding Traun docs")  # ABC, NBC, CBS
         futures[executor.submit(traun.add_docs, 2000, bulk=True)] = "traun"
 
+        print(">>> Adding Adam update doc")  # FOX
+        futures[executor.submit(adam.add_docs, 1)] = "adam"
+
+        
         for future in concurrent.futures.as_completed(futures):
             try:
                 tag = futures[future]
@@ -42,12 +48,15 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster):
                     # Assert takedown was successful
                     shutdown_status = future.result()
                     assert shutdown_status == 0
+                if task_name == "adam":
+                    adam.update_docs(num_revs_per_doc=5000)
+                    
                 print("{} Completed:".format(tag))
             except Exception as e:
                 print("Exception thrown while adding docs: {}".format(e))
 
     # TODO better way to do this
-    time.sleep(10)
+    time.sleep(60)
 
     verify_changes(traun, expected_num_docs=2000, expected_num_revisions=0, expected_docs=traun.cache)
     verify_changes(seth, expected_num_docs=8000, expected_num_revisions=0, expected_docs=seth.cache)
