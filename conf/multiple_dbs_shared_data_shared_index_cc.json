@@ -11,10 +11,12 @@
     "databases": {
         "db":{
             "server":"http://{{ couchbase_server_primary_node }}:8091",
+	    "feed_type":"DCP",
             "bucket":"data-bucket"
         },
         "db2":{
             "server":"http://{{ couchbase_server_primary_node }}:8091",
+	    "feed_type":"DCP",
             "bucket":"data-bucket"
         }
     }
