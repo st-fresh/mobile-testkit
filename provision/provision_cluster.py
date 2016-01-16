@@ -52,7 +52,7 @@ def provision_cluster(couchbase_server_config, sync_gateway_config, install_deps
 
     if install_deps:
         # OS-level modifications
-        ansible_runner.run_ansible_playbook("os-level-modifications.yml")
+        # ansible_runner.run_ansible_playbook("os-level-modifications.yml")
 
         # Install dependencies
         ansible_runner.run_ansible_playbook("install-common-tools.yml")
