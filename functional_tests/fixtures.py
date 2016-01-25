@@ -20,24 +20,21 @@ def cluster(request):
 
     def fetch_logs():
 
-        # Fetch logs if a test fails
-        if request.node.rep_call.failed:
+        log.error("\n!!!!!!!!!! TEST FAILURE !!!!!!!!!!")
+        log.error(request.node.nodeid)
 
-            log.error("\n!!!!!!!!!! TEST FAILURE !!!!!!!!!!")
-            log.error(request.node.nodeid)
-
-            # example nodeid: tests/test_single_user_multiple_channels.py::test_1
-            remove_slash = request.node.nodeid.replace("/", "-")
-            test_id_elements = remove_slash.split("::")
-            log_zip_prefix = "{0}-{1}".format(test_id_elements[0], test_id_elements[1])
+        # example nodeid: tests/test_single_user_multiple_channels.py::test_1
+        remove_slash = request.node.nodeid.replace("/", "-")
+        test_id_elements = remove_slash.split("::")
+        log_zip_prefix = "{0}-{1}".format(test_id_elements[0], test_id_elements[1])
             
-            zip_file_path = fetch_sync_gateway_logs(log_zip_prefix)
+        zip_file_path = fetch_sync_gateway_logs(log_zip_prefix)
             
-            if detected_data_races(zip_file_path):
-                log.error("Detected data races in logs: {}".format(zip_file_path))
+        if detected_data_races(zip_file_path):
+            log.error("Detected data races in logs: {}".format(zip_file_path))
 
-            if detected_panics(zip_file_path):
-                log.error("Detected panics in logs: {}".format(zip_file_path))
+        if detected_panics(zip_file_path):
+            log.error("Detected panics in logs: {}".format(zip_file_path))
                           
 
     if settings.CAPTURE_SYNC_GATEWAY_LOGS_ON_FAIL:
