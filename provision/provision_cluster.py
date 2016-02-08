@@ -109,6 +109,15 @@ if __name__ == "__main__":
     parser.add_option("", "--install-deps", action="store_true", dest="install_deps", default=False,
                       help="This flag will install the required dependencies to build sync_gateway from source")
 
+    parser.add_option("", "--skip-bucketflush",
+                      action="store", dest="skip_bucketflush", default=False,
+                      help="skip the bucketflush step")
+
+    parser.add_option("", "--build-flags",
+                      action="store", type="string", dest="build_flags", default="",
+                      help="build flags to pass when building sync gateway (ex. -race)")
+
+    
     arg_parameters = sys.argv[1:]
 
     (opts, args) = parser.parse_args(arg_parameters)
@@ -134,8 +143,9 @@ if __name__ == "__main__":
         dev_build_url=opts.sync_gateway_dev_build_url,
         dev_build_number=opts.sync_gateway_dev_build_number,
         branch=opts.source_branch,
-        build_flags="",
-        config_path=opts.sync_gateway_config_file
+        build_flags=opts.build_flags,
+        config_path=opts.sync_gateway_config_file,
+        skip_bucketflush=opts.skip_bucketflush
     )
 
     provision_cluster(
