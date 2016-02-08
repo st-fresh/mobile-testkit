@@ -19,10 +19,12 @@ log = logging.getLogger(lib.settings.LOGGER)
 @pytest.mark.distributed_index
 @pytest.mark.parametrize(
         "conf, num_docs, num_revisions", [
-            ("sync_gateway_default_functional_tests_di.json", 100, 100),
-            ("sync_gateway_default_functional_tests_cc.json", 100, 100)
+            ("sync_gateway_default_functional_tests_di.json", 1000, 10),
+            ("sync_gateway_default_functional_tests_di.json", 10, 1000),
+            ("sync_gateway_default_functional_tests_cc.json", 1000, 10),
+            ("sync_gateway_default_functional_tests_cc.json", 10, 1000)
         ],
-        ids=["DI-1", "CC-2"]
+        ids=["DI-1", "DI-2","CC-1", "CC-2"]
 )
 def test_single_user_single_channel_doc_updates(cluster, conf, num_docs, num_revisions):
 
@@ -32,6 +34,10 @@ def test_single_user_single_channel_doc_updates(cluster, conf, num_docs, num_rev
 
     start = time.time()
     mode = cluster.reset(config=conf)
+
+    init_completed = time.time()
+    log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
+
     num_docs = num_docs
     num_revisions = num_revisions
     username = "User-1"
@@ -63,6 +69,10 @@ def test_single_user_single_channel_doc_updates(cluster, conf, num_docs, num_rev
     assert(len(errors) == 0)
 
     end = time.time()
+    log.info("Test ended.")
+    log.info("Main test duration: {}".format(end - init_completed))
+    log.info("Test setup time: {}".format(init_completed - start))
+    log.info("Total Time taken: {}s".format(end - start))
     log.info("TIME:{}s".format(end - start))
 
 

@@ -69,7 +69,7 @@ class User:
 
     # PUT /{db}/{doc}
     # PUT /{db}/{local-doc-id}
-    def add_doc(self, doc_id=None, content=None, retries=False):
+    def add_doc(self, doc_id=None, content=None, retries=True):
 
         doc_body = dict()
         doc_body["updates"] = 0
@@ -91,10 +91,10 @@ class User:
             doc_url = self.target.url + "/" + self.db + "/" + doc_id
 
             if retries:
-                session = requests.Session()
-                adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
-                session.mount("http://", adapter)
-                resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+                with requests.Session() as session:
+                    adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
+                    session.mount("http://", adapter)
+                    resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
             else:
                 resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
@@ -201,7 +201,7 @@ class User:
 
     # GET /{db}/{doc}
     # PUT /{db}/{doc}
-    def update_doc(self, doc_id, num_revision=1, content=None, retries=False):
+    def update_doc(self, doc_id, num_revision=1, content=None, retries=True):
 
         updated_docs = dict()
 
@@ -223,10 +223,10 @@ class User:
                 body = json.dumps(data)
 
                 if retries:
-                    session = requests.Session()
-                    adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
-                    session.mount("http://", adapter)
-                    put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+                    with requests.Session() as session:
+                        adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
+                        session.mount("http://", adapter)
+                        put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
                 else:
                     put_resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
