@@ -8,11 +8,12 @@ import requests
 
 import lib.settings
 import logging
-log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
 
-@pytest.mark.regression
+log = logging.getLogger(lib.settings.LOGGER)
+
+
 @pytest.mark.parametrize("conf, num_docs, user_channels, filter, limit", [
         ("sync_gateway_channel_cache_cc.json", 5000, "*", True, 50),
         ("sync_gateway_channel_cache_cc.json", 1000, "*", True, 50),

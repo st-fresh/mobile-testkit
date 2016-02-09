@@ -13,8 +13,7 @@ from fixtures import cluster
 import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
+
 @pytest.mark.parametrize(
         "conf, num_users, num_docs, num_revisions", [
             ("sync_gateway_default_functional_tests_di.json", 1, 5000, 1),
@@ -82,8 +81,7 @@ def test_continuous_changes_parametrized(cluster, conf, num_users, num_docs, num
     errors = cluster.verify_alive(mode)
     assert(len(errors) == 0)
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
+
 @pytest.mark.parametrize(
         "conf, num_docs, num_revisions", [
             ("sync_gateway_default_functional_tests_di.json", 10, 10),

@@ -15,8 +15,7 @@ log = logging.getLogger(lib.settings.LOGGER)
 # Verify all revisions in changes feed
 # https://docs.google.com/spreadsheets/d/1nlba3SsWagDrnAep3rDZHXHIDmRH_FFDeTaYJms_55k/edit#gid=598127796
 
-@pytest.mark.sanity
-@pytest.mark.distributed_index
+
 @pytest.mark.parametrize(
         "conf, num_docs, num_revisions", [
             ("sync_gateway_default_functional_tests_di.json", 100, 100),

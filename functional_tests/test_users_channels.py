@@ -11,10 +11,8 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
+from fixtures import run_opts
 
-
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
@@ -22,11 +20,11 @@ from fixtures import cluster
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_multiple_users_multiple_channels(cluster, conf):
+def test_multiple_users_multiple_channels(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     # TODO Parametrize
     num_docs_seth = 1000
@@ -35,7 +33,7 @@ def test_multiple_users_multiple_channels(cluster, conf):
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     seth = admin.register_user(target=sgs[0], db="db", name="seth", password="password", channels=["ABC"])
     adam = admin.register_user(target=sgs[0], db="db", name="adam", password="password", channels=["NBC", "CBS"])
@@ -73,8 +71,6 @@ def test_multiple_users_multiple_channels(cluster, conf):
     assert(len(errors) == 0)
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
@@ -82,11 +78,11 @@ def test_multiple_users_multiple_channels(cluster, conf):
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_muliple_users_single_channel(cluster, conf):
+def test_muliple_users_single_channel(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     sgs = cluster.sync_gateways
 
@@ -95,7 +91,7 @@ def test_muliple_users_single_channel(cluster, conf):
     num_docs_adam = 2000
     num_docs_traun = 3000
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     seth = admin.register_user(target=sgs[0], db="db", name="seth", password="password", channels=["ABC"])
     adam = admin.register_user(target=sgs[0], db="db", name="adam", password="password", channels=["ABC"])
@@ -123,8 +119,6 @@ def test_muliple_users_single_channel(cluster, conf):
     assert(len(errors) == 0)
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
@@ -132,16 +126,16 @@ def test_muliple_users_single_channel(cluster, conf):
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_single_user_multiple_channels(cluster, conf):
+def test_single_user_multiple_channels(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     start = time.time()
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
     seth = admin.register_user(target=sgs[0], db="db", name="seth", password="password", channels=["ABC", "CBS", "NBC", "FOX"])
 
     # Round robin
@@ -166,8 +160,6 @@ def test_single_user_multiple_channels(cluster, conf):
     log.info("TIME:{}s".format(end - start))
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
@@ -175,11 +167,11 @@ def test_single_user_multiple_channels(cluster, conf):
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_single_user_single_channel(cluster, conf):
+def test_single_user_single_channel(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     sgs = cluster.sync_gateways
 
@@ -187,9 +179,9 @@ def test_single_user_single_channel(cluster, conf):
     num_seth_docs = 7000
     num_admin_docs = 3000
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
     seth = admin.register_user(target=sgs[0], db="db", name="seth", password="password", channels=["ABC"])
-    admin_user = admin.register_user(target=sgs[0], db="db", name="admin", password="password", channels=["*"])
+    admin_user = admin.register_user(target=sgs[0], db="db", name="admin", password="password", channels=["ADMIN", "ABC"])
 
     seth.add_docs(num_seth_docs)
     admin_user.add_docs(num_admin_docs)

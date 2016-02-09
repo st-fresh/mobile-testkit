@@ -96,7 +96,6 @@ def verify_response_size(user_agent, accept_encoding, x_accept_part_encoding, re
         raise ValueError("Unsupported user agent")
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf, num_docs, accept_encoding, x_accept_part_encoding, user_agent",
     [

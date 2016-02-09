@@ -17,17 +17,19 @@ import logging
 log = logging.getLogger(settings.LOGGER)
 
 class User:
-    def __init__(self, target, db, name, password, channels):
+    def __init__(self, target, db, test_id, name, password, channels):
 
         self.name = name
         self.password = password
         self.db = db
+        self.id = test_id
         self.cache = {}
         self.changes_data = None
         self.channels = list(channels)
         self.target = target
 
         auth = base64.b64encode("{0}:{1}".format(self.name, self.password).encode())
+
         self._auth = auth.decode("UTF-8")
         self._headers = {'Content-Type': 'application/json', "Authorization": "Basic {}".format(self._auth)}
 
@@ -37,14 +39,20 @@ class User:
     # GET /{db}/{doc}
     # GET /{db}/{local-doc-id}
     def get_doc(self, doc_id):
-        resp = requests.get("{0}/{1}/{2}".format(self.target.url, self.db, doc_id), headers=self._headers)
+
+        doc_with_test_id = "{}-{}".format(self.id, doc_id)
+
+        resp = requests.get("{0}/{1}/{2}".format(self.target.url, self.db, doc_with_test_id), headers=self._headers)
         log.debug("GET {}".format(resp.url))
         resp.raise_for_status()
         return resp.json()
 
     # POST /{db}/bulk_get
     def get_docs(self, doc_ids):
-        docs_array = [{"id": doc_id} for doc_id in doc_ids]
+
+        docs_with_test_id = ["{}-{}".format(self.id, doc_id) for doc_id in doc_ids]
+        docs_array = [{"id": doc_id} for doc_id in docs_with_test_id]
+
         body = {"docs": docs_array}
 
         resp = requests.post("{0}/{1}/_bulk_get".format(self.target.url, self.db), headers=self._headers, data=json.dumps(body))
@@ -69,7 +77,7 @@ class User:
 
     # PUT /{db}/{doc}
     # PUT /{db}/{local-doc-id}
-    def add_doc(self, doc_id=None, content=None, retries=False):
+    def add_doc(self, doc_id, content=None, retries=False):
 
         doc_body = dict()
         doc_body["updates"] = 0
@@ -82,23 +90,25 @@ class User:
 
         body = json.dumps(doc_body)
 
-        if doc_id is None:
-            # Use a POST and let sync_gateway generate an id
-            resp = requests.post("{0}/{1}/".format(self.target.url, self.db), headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-            log.debug("{0} POST {1}".format(self.name, resp.url))
+        # if doc_id is None:
+        #     # Use a POST and let sync_gateway generate an id
+        #     resp = requests.post("{0}/{1}/".format(self.target.url, self.db), headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+        #     log.debug("{0} POST {1}".format(self.name, resp.url))
+        # else:
+        # If the doc id is specified, use PUT with doc_id in url
+
+        doc_with_test_id = "{}-{}".format(self.id, doc_id)
+        doc_url = "{}/{}/{}".format(self.target.url, self.db, doc_with_test_id)
+
+        if retries:
+            session = requests.Session()
+            adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
+            session.mount("http://", adapter)
+            resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
         else:
-            # If the doc id is specified, use PUT with doc_id in url
-            doc_url = self.target.url + "/" + self.db + "/" + doc_id
+            resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
-            if retries:
-                session = requests.Session()
-                adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
-                session.mount("http://", adapter)
-                resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-            else:
-                resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-
-            log.debug("{0} PUT {1}".format(self.name, resp.url))
+        log.debug("{0} PUT {1}".format(self.name, resp.url))
 
         resp.raise_for_status()
         resp_json = resp.json()
@@ -111,7 +121,7 @@ class User:
                 self.cache[doc_id] = resp_json["rev"]
             elif doc_id is not None and not doc_id.startswith("_local/"):
                 # Do not store local docs in user cache because they will not show up in the _changes feed
-                self.cache[doc_id] = resp_json["rev"]
+                self.cache[doc_with_test_id] = resp_json["rev"]
 
         return doc_id
 
@@ -121,10 +131,13 @@ class User:
         # Create docs
         doc_list = []
         for doc_id in doc_ids:
+
+            doc_with_test_id = "{}-{}".format(self.id, doc_id)
+
             if self.channels:
-                doc = {"_id": doc_id, "channels": self.channels, "updates": 0}
+                doc = {"_id": doc_with_test_id, "channels": self.channels, "updates": 0}
             else:
-                doc = {"_id": doc_id, "updates": 0}
+                doc = {"_id": doc_with_test_id, "updates": 0}
             doc_list.append(doc)
 
         docs = dict()
@@ -207,7 +220,9 @@ class User:
 
         for i in range(num_revision):
 
-            doc_url = self.target.url + '/' + self.db + '/' + doc_id
+            doc_with_test_id = "{}-{}".format(self.id, doc_id)
+            doc_url = "{}/{}/{}".format(self.target.url, self.db, doc_with_test_id)
+
             resp = requests.get(doc_url, headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
             log.debug("{0} GET {1}".format(self.name, resp.url))
 
@@ -390,6 +405,8 @@ class User:
         docs = dict()
         continue_polling = True
 
+        termination_doc_with_test_id = "{}-{}".format(self.id, termination_doc_id)
+
         while continue_polling:
             # if the longpoll request times out or there have been changes, issue a new long poll request
             if request_timed_out or current_seq_num != previous_seq_num:
@@ -450,7 +467,7 @@ class User:
                         log.debug("{} DOC FROM LONGPOLL _changes: {}: {}".format(self.name, doc["doc"]["_id"], doc["doc"]["_rev"]))
 
                         # Stop polling if termination doc is recieved in _changes
-                        if termination_doc_id is not None and doc["id"] == termination_doc_id:
+                        if termination_doc_id is not None and doc["id"] == termination_doc_with_test_id:
                             log.debug("Termination doc found")
                             continue_polling = False
                             break
@@ -491,6 +508,8 @@ class User:
         r = requests.post(url="{0}/{1}/_changes".format(self.target.url, self.db), headers=self._headers, data=data, stream=True)
         log.debug("{0} POST {1}".format(self.name, r.url))
 
+        termination_doc_with_test_id = "{}-{}".format(self.id, termination_doc_id)
+
         # Wait for continuous changes
         for line in r.iter_lines():
             # filter out keep-alive new lines
@@ -502,7 +521,7 @@ class User:
                     continue
 
                 # Close connection if termination doc is recieved in _changes
-                if termination_doc_id is not None and doc["doc"]["_id"] == termination_doc_id:
+                if termination_doc_id is not None and doc["doc"]["_id"] == termination_doc_with_test_id:
                     r.close()
                     return docs
 

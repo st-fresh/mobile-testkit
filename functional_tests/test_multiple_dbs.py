@@ -12,15 +12,13 @@ log = logging.getLogger(lib.settings.LOGGER)
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf,num_users,num_docs_per_user",
     [
         ("multiple_dbs_unique_data_unique_index_di.json", 10, 500),
         ("multiple_dbs_unique_data_unique_index_cc.json", 10, 500)
     ],
-    ids=["DI-1", "CC-2"]
+    ids=["RESET-DI-1", "RESET-CC-2"]
 )
 def test_multiple_db_unique_data_bucket_unique_index_bucket(cluster, conf, num_users, num_docs_per_user):
 
@@ -65,16 +63,15 @@ def test_multiple_db_unique_data_bucket_unique_index_bucket(cluster, conf, num_u
     errors = cluster.verify_alive(mode)
     assert(len(errors) == 0)
 
+
 # Kind of an edge case in that most users would not point multiple dbs at the same server bucket
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf,num_users,num_docs_per_user",
     [
         ("multiple_dbs_shared_data_shared_index_di.json", 10, 500),
         ("multiple_dbs_shared_data_shared_index_cc.json", 10, 500)
     ],
-    ids=["DI-1", "CC-2"]
+    ids=["RESET-DI-1", "RESET-CC-2"]
 )
 def test_multiple_db_single_data_bucket_single_index_bucket(cluster, conf, num_users, num_docs_per_user):
 

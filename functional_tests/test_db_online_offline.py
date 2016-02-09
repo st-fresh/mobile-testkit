@@ -195,8 +195,6 @@ def rest_scan(sync_gateway, db, online, num_docs, user_name, channels):
 
 
 # Scenario 1
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -229,8 +227,6 @@ def test_online_default_rest(cluster, conf, num_docs):
 
 
 # Scenario 2
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -264,8 +260,6 @@ def test_offline_false_config_rest(cluster, conf, num_docs):
 
 
 # Scenario 3
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -305,8 +299,6 @@ def test_online_to_offline_check_503(cluster, conf, num_docs):
 
 
 # Scenario 5 - continuous
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -380,8 +372,6 @@ def test_online_to_offline_changes_feed_controlled_close_continuous(cluster, con
 
 
 # Scenario 6 - longpoll
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf, num_docs, num_users",
     [
@@ -440,8 +430,6 @@ def test_online_to_offline_continous_changes_feed_controlled_close_sanity_mulitp
 
 
 # Scenario 6 - longpoll
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -498,8 +486,6 @@ def test_online_to_offline_changes_feed_controlled_close_longpoll_sanity(cluster
 
 
 # Scenario 6 - longpoll
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf, num_docs, num_users",
     [
@@ -563,8 +549,6 @@ def test_online_to_offline_longpoll_changes_feed_controlled_close_sanity_mulitpl
 
 
 # Scenario 6 - longpoll
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -657,8 +641,6 @@ def test_online_to_offline_changes_feed_controlled_close_longpoll(cluster, conf,
 
 
 # Scenario 6
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -702,8 +684,6 @@ def test_offline_true_config_bring_online(cluster, conf, num_docs):
 
 
 # Scenario 14
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -740,9 +720,8 @@ def test_db_offline_tap_loss_sanity(cluster, conf, num_docs):
     errors = cluster.verify_alive(mode)
     assert(len(errors) == 0)
 
+
 # Scenario 11
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [
@@ -791,8 +770,6 @@ def test_db_delayed_online(cluster, conf, num_docs):
     assert(len(errors) == 0)
 
 
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize(
     "conf,num_docs",
     [

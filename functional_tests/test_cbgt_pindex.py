@@ -9,9 +9,6 @@ from lib.verify import verify_changes
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
-
 def test_pindex_distribution(cluster):
 
     # the test itself doesn't have to do anything beyond calling cluster.reset() with the

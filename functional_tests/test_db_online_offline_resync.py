@@ -10,8 +10,6 @@ import logging
 log = logging.getLogger(settings.LOGGER)
 
 
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_docs", [100])
 @pytest.mark.parametrize("num_revisions", [10])
@@ -124,8 +122,6 @@ def test_bucket_online_offline_resync_sanity(cluster, num_users, num_docs, num_r
 # put DB offline, run _resync, attempt to bring DB online while _resync is running,
 # expected result _online will fail with status 503, when _resync is complete,
 # attempt to bring DB _online, expected result _online will succeed, return status 200.
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_docs", [100])
 @pytest.mark.parametrize("num_revisions", [5])
@@ -287,8 +283,6 @@ def test_bucket_online_offline_resync_with_online(cluster, num_users, num_docs, 
 # #13
 # With DB running a _resync, make REST API call to get DB runtime details /db/,
 # expected result 'state' property with value 'Resyncing' is returned.
-@pytest.mark.sanity
-@pytest.mark.dbonlineoffline
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_docs", [100])
 @pytest.mark.parametrize("num_revisions", [5])

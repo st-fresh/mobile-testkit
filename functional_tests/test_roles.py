@@ -13,8 +13,6 @@ log = logging.getLogger(lib.settings.LOGGER)
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),

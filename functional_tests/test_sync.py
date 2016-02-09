@@ -16,7 +16,6 @@ log = logging.getLogger(lib.settings.LOGGER)
 
 
 # https://github.com/couchbase/sync_gateway/issues/1524
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf, num_docs",
     [
@@ -89,8 +88,6 @@ def test_issue_1524(cluster, conf, num_docs):
     assert(len(errors) == 0)
 
 
-
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf",
     [
@@ -139,7 +136,6 @@ def test_sync_access_sanity(cluster, conf):
     assert(len(errors) == 0)
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf",
     [
@@ -203,7 +199,6 @@ def test_sync_channel_sanity(cluster, conf):
     # TODO Push more docs to channel and make sure they do not show up in the users changes feed.
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf",
     [
@@ -273,7 +268,6 @@ def test_sync_role_sanity(cluster, conf):
     assert(len(errors) == 0)
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf",
     [
@@ -320,7 +314,6 @@ def test_sync_sanity(cluster, conf):
     assert(len(errors) == 0)
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf",
     [
@@ -367,7 +360,6 @@ def test_sync_sanity_backfill(cluster, conf):
     assert(len(errors) == 0)
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize(
     "conf",
     [

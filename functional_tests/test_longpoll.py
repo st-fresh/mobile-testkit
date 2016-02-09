@@ -15,8 +15,6 @@ log = logging.getLogger(lib.settings.LOGGER)
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf,num_docs,num_revisions", [
             ("sync_gateway_default_functional_tests_di.json", 5000, 1),
@@ -76,8 +74,6 @@ def test_longpoll_changes_parametrized(cluster,conf, num_docs, num_revisions):
     assert(len(errors) == 0)
 
 
-@pytest.mark.distributed_index
-@pytest.mark.sanity
 @pytest.mark.parametrize(
         "conf, num_docs, num_revisions", [
             ("sync_gateway_default_functional_tests_di.json", 10, 10),

@@ -11,10 +11,11 @@ log = logging.getLogger(settings.LOGGER)
 
 class Admin:
 
-    def __init__(self, sync_gateway):
+    def __init__(self, sync_gateway, test_id):
         self.admin_url = "http://{}:4985".format(sync_gateway.ip)
         self.users = {}
         self._headers = {"Content-Type": "application/json"}
+        self.id = test_id
 
     # GET /{db}/
     def get_db_info(self, db):
@@ -25,8 +26,14 @@ class Admin:
 
     # PUT /{db}/_role/{name}
     def create_role(self, db, name, channels):
-        data = {"name": name, "admin_channels": channels}
-        resp = requests.put("{0}/{1}/_role/{2}".format(self.admin_url, db, name), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT, data=json.dumps(data))
+
+        # prefix role and channels with unique test id
+        role_with_id = "{}-{}".format(self.id, name)
+        channels_with_id = ["{}-{}".format(self.id, channel) for channel in channels]
+
+        data = {"name": role_with_id, "admin_channels": channels_with_id }
+
+        resp = requests.put("{0}/{1}/_role/{2}".format(self.admin_url, db, role_with_id), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT, data=json.dumps(data))
         log.info("PUT {}".format(resp.url))
         resp.raise_for_status()
 
@@ -39,7 +46,10 @@ class Admin:
 
     # GET /{db}/_role/{name}
     def get_role(self, db, name):
-        resp = requests.get("{0}/{1}/_role/{2}".format(self.admin_url, db, name), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
+
+        role_with_id = "{}-{}".format(self.id, name)
+
+        resp = requests.get("{0}/{1}/_role/{2}".format(self.admin_url, db, role_with_id), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
         log.info("GET {}".format(resp.url))
         resp.raise_for_status()
         return resp.json()
@@ -47,13 +57,19 @@ class Admin:
     # PUT /{db}/_user/{name}
     def register_user(self, target, db, name, password, channels=list(), roles=list()):
 
-        data = {"name": name, "password": password, "admin_channels": channels, "admin_roles": roles}
+        name_with_id = "{}-{}".format(self.id, name)
+        channels_with_id = ["{}-{}".format(self.id, channel) for channel in channels]
+        roles_with_id = ["{}-{}".format(self.id, role) for role in roles]
 
-        resp = requests.put("{0}/{1}/_user/{2}".format(self.admin_url, db, name), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT, data=json.dumps(data))
+        data = {"name": name_with_id, "password": password, "admin_channels": channels_with_id, "admin_roles": roles_with_id}
+
+        print(data)
+
+        resp = requests.put("{0}/{1}/_user/{2}".format(self.admin_url, db, name_with_id), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT, data=json.dumps(data))
         log.info("PUT {}".format(resp.url))
         resp.raise_for_status()
 
-        return User(target, db, name, password, channels)
+        return User(target, db, self.id, name_with_id, password, channels_with_id)
 
     def register_bulk_users(self, target, db, name_prefix, number, password, channels=list(), roles=list()):
 
@@ -84,7 +100,10 @@ class Admin:
 
     # GET /{db}/_user/{name}
     def get_user_info(self, db, name):
-        resp = requests.get("{0}/{1}/_user/{2}".format(self.admin_url, db, name), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
+
+        name_with_id = "{}-{}".format(self.id, name)
+
+        resp = requests.get("{0}/{1}/_user/{2}".format(self.admin_url, db, name_with_id), headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
         log.info("GET {}".format(resp.url))
         resp.raise_for_status()
         return resp.json()

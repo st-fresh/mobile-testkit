@@ -11,7 +11,6 @@ import logging
 log = logging.getLogger(settings.LOGGER)
 
 
-@pytest.mark.sanity
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_channels", [1]) #all users share all channels
 @pytest.mark.parametrize("num_docs", [1])
@@ -59,7 +58,6 @@ def test_webhooks(cluster, num_users,num_channels, num_docs, num_revisions):
     assert(len(errors) == 0)
 
 # implements scenarios: 18 and 19
-@pytest.mark.sanity
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_channels", [1]) #all users share all channels
 @pytest.mark.parametrize("num_docs", [1])
@@ -129,7 +127,6 @@ def test_db_online_offline_webhooks_offline(cluster, num_users,num_channels, num
 
 
 # implements scenarios: 21
-@pytest.mark.sanity
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_channels", [1]) #all users share all channels
 @pytest.mark.parametrize("num_docs", [1])

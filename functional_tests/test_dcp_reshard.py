@@ -12,8 +12,6 @@ log = logging.getLogger(lib.settings.LOGGER)
 from fixtures import cluster
 
 
-@pytest.mark.distributed_index
-@pytest.mark.extendedsanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
@@ -65,8 +63,6 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster, conf):
     assert(len(errors) == 1 and errors[0][0].hostname == "sg1")
 
 
-@pytest.mark.distributed_index
-@pytest.mark.extendedsanity
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
@@ -119,8 +115,7 @@ def test_dcp_reshard_sync_gateway_comes_up(cluster, conf):
     errors = cluster.verify_alive(mode)
     assert(len(errors) == 0)
 
-@pytest.mark.distributed_index
-@pytest.mark.extendedsanity
+
 @pytest.mark.parametrize(
         "conf", [
             ("sync_gateway_default_functional_tests_di.json"),
