@@ -13,13 +13,14 @@ import os.path
 
 import logging
 import lib.settings
-import lib.constants
+from lib.constants import SGMode
+
 log = logging.getLogger(lib.settings.LOGGER)
 
 
 class RunOptions:
 
-    valid_modes = [lib.constants.distributed_index, lib.constants.channel_cache]
+    valid_modes = [SGMode.distributed_index, SGMode.channel_cache]
 
     def __init__(self, id, mode, reset_data):
         self.id = id,

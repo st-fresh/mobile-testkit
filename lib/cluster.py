@@ -15,7 +15,8 @@ from lib.sgaccel import SgAccel
 from lib.server import Server
 from lib.admin import Admin
 from lib import settings
-import lib.constants
+from lib.constants import SGMode
+
 from provision.ansible_runner import run_ansible_playbook
 
 import logging
@@ -86,7 +87,7 @@ class Cluster:
         status = run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
         assert(status == 0)
 
-        mode = lib.constants.channel_cache
+        mode = SGMode.channel_cache
         conf_path = os.path.abspath("conf/" + config)
 
         if run_opts.reset_data:
@@ -121,7 +122,7 @@ class Cluster:
 
             # Add CBGT buckets
             if "cluster_config" in conf_obj.keys():
-                mode = lib.constants.distributed_index
+                mode = SGMode.distributed_index
                 bucket_names_from_config.append(conf_obj["cluster_config"]["bucket"])
 
             dbs = conf_obj["databases"]
@@ -136,9 +137,9 @@ class Cluster:
         bucket_name_set = list(set(bucket_names_from_config))
 
         # Assert that conf author is alerted if they do not follow conventions for bucket naming
-        if run_opts.mode == lib.constants.distributed_index:
+        if run_opts.mode == SGMode.channel_cache:
             assert len(bucket_name_set) == 1 and "data_bucket" in bucket_name_set
-        elif run_opts.mode == lib.constants.channel_cache:
+        elif run_opts.mode == SGMode.distributed_index:
             assert len(bucket_name_set) == 2 and "data_bucket" in bucket_name_set and "index_bucket" in bucket_name_set
         else:
             raise ValueError("Unsupported mode")
@@ -160,7 +161,7 @@ class Cluster:
 
         # HACK - only enable sg_accel for distributed index tests
         # revise this with https://github.com/couchbaselabs/sync-gateway-testcluster/issues/222
-        if mode == lib.constants.distributed_index:
+        if mode == SGMode.distributed_index:
             # Start sg-accel
             status = run_ansible_playbook(
                 "start-sg-accel.yml",
@@ -170,7 +171,7 @@ class Cluster:
             assert(status == 0)
 
         # Validate CBGT
-        if mode == lib.constants.distributed_index:
+        if mode == SGMode.distributed_index:
             if not self.validate_cbgt_pindex_distribution_retry():
                 self.save_cbgt_diagnostics()
                 raise Exception("Failed to validate CBGT Pindex distribution")
@@ -285,7 +286,7 @@ class Cluster:
                 log.error("sync_gateway down: {}".format(e))
                 errors.append((sg, e))
 
-        if mode == lib.constants.distributed_index:
+        if mode == SGMode.distributed_index:
             for sa in self.sg_accels:
                 try:
                     info = sa.info()

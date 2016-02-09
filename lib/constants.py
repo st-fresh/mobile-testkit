@@ -1,2 +1,3 @@
-distributed_index = "distributed_index"
-channel_cache = "channel_cache"
+class SGMode:
+    distributed_index = "DI"
+    channel_cache = "CC"
