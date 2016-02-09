@@ -23,29 +23,33 @@ class Server:
         auth = auth.decode("UTF-8")
         self._headers = {'Content-Type': 'application/json', "Authorization": "Basic {}".format(auth)}
 
-    def delete_buckets(self):
+    def get_buckets(self):
+        existing_bucket_names = []
+        resp = requests.get("{}/pools/default/buckets".format(self.url), headers=self._headers)
+        resp.raise_for_status()
+        obj = json.loads(resp.text)
+
+        for entry in obj:
+            existing_bucket_names.append(entry["name"])
+
+        return existing_bucket_names
+
+    def delete_buckets(self, names):
         count = 0
         while count < 3:
-            resp = requests.get("{}/pools/default/buckets".format(self.url), headers=self._headers)
-            resp.raise_for_status()
-            obj = json.loads(resp.text)
 
-            existing_bucket_names = []
-            for entry in obj:
-                existing_bucket_names.append(entry["name"])
-
-            log.info(">>> Existing buckets: {}".format(existing_bucket_names))
-            log.info(">>> Deleting buckets: {}".format(existing_bucket_names))
+            log.info(">>> Existing buckets: {}".format(names))
+            log.info(">>> Deleting buckets: {}".format(names))
 
             # HACK around Couchbase Server issue where issuing a bucket delete via REST occasionally returns 500 error
             delete_num = 0
             # Delete existing buckets
-            for bucket_name in existing_bucket_names:
+            for bucket_name in names:
                 resp = requests.delete("{0}/pools/default/buckets/{1}".format(self.url, bucket_name), headers=self._headers)
                 if resp.status_code == 200:
                     delete_num += 1
 
-            if delete_num == len(existing_bucket_names):
+            if delete_num == len(names):
                 break
             else:
                 # A 500 error may have occured, query for buckets and try to delete them again

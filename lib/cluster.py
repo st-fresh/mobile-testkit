@@ -15,7 +15,7 @@ from lib.sgaccel import SgAccel
 from lib.server import Server
 from lib.admin import Admin
 from lib import settings
-from lib.constants import SGMode
+from lib.constants import RunMode
 
 from provision.ansible_runner import run_ansible_playbook
 
@@ -76,34 +76,47 @@ class Cluster:
     def reset(self, config, run_opts):
 
         self.validate_cluster()
+
+        # Detect if run mode has changed and reset accordlingly
+        existing_buckets = self.servers[0].get_buckets()
+        clean = False
+        if run_opts.mode == RunMode.distributed_index and "index-bucket" not in existing_buckets:
+            log.info("Mode has changed. Cleaning!")
+            clean = True
+        if run_opts.mode == RunMode.channel_cache and "index-bucket" in existing_buckets:
+            log.info("Mode has changed. Cleaning!")
+            clean = True
         
         # Stop sync_gateways
         log.info(">>> Stopping sync_gateway")
         status = run_ansible_playbook("stop-sync-gateway.yml", stop_on_fail=False)
         assert(status == 0)
 
-        # Stop sync_gateways
-        log.info(">>> Stopping sg_accel")
-        status = run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
-        assert(status == 0)
+        if run_opts.mode == RunMode.distributed_index:
+            # Stop sync_gateways
+            log.info(">>> Stopping sg_accel")
+            status = run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
+            assert(status == 0)
 
-        mode = SGMode.channel_cache
         conf_path = os.path.abspath("conf/" + config)
 
-        if run_opts.reset_data:
+        if run_opts.reset or clean:
             # Deleting sync_gateway artifacts
             log.info(">>> Deleting sync_gateway artifacts")
             status = run_ansible_playbook("delete-sync-gateway-artifacts.yml", stop_on_fail=False)
             assert(status == 0)
 
-            # Deleting sg_accel artifacts
-            log.info(">>> Deleting sg_accel artifacts")
-            status = run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
-            assert(status == 0)
+            if run_opts.mode == RunMode.distributed_index:
+                # Deleting sg_accel artifacts
+                log.info(">>> Deleting sg_accel artifacts")
+                status = run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
+                assert(status == 0)
 
+        if run_opts.reset or clean:
             # Delete buckets
             log.info(">>> Deleting buckets on: {}".format(self.servers[0].ip))
-            self.servers[0].delete_buckets()
+            existing_buckets = self.servers[0].get_buckets()
+            self.servers[0].delete_buckets(existing_buckets)
 
         # Parse config and grab bucket names
         bucket_names_from_config = []
@@ -122,7 +135,6 @@ class Cluster:
 
             # Add CBGT buckets
             if "cluster_config" in conf_obj.keys():
-                mode = SGMode.distributed_index
                 bucket_names_from_config.append(conf_obj["cluster_config"]["bucket"])
 
             dbs = conf_obj["databases"]
@@ -137,14 +149,9 @@ class Cluster:
         bucket_name_set = list(set(bucket_names_from_config))
 
         # Assert that conf author is alerted if they do not follow conventions for bucket naming
-        if run_opts.mode == SGMode.channel_cache:
-            assert len(bucket_name_set) == 1 and "data_bucket" in bucket_name_set
-        elif run_opts.mode == SGMode.distributed_index:
-            assert len(bucket_name_set) == 2 and "data_bucket" in bucket_name_set and "index_bucket" in bucket_name_set
-        else:
-            raise ValueError("Unsupported mode")
+        self.validate_bucket_names(bucket_name_set, run_opts.mode)
 
-        if run_opts.reset_data:
+        if run_opts.reset or clean:
             log.info(">>> Creating buckets on: {}".format(self.servers[0].ip))
             log.info(">>> Creating buckets {}".format(bucket_name_set))
             self.servers[0].create_buckets(bucket_name_set)
@@ -161,7 +168,7 @@ class Cluster:
 
         # HACK - only enable sg_accel for distributed index tests
         # revise this with https://github.com/couchbaselabs/sync-gateway-testcluster/issues/222
-        if mode == SGMode.distributed_index:
+        if run_opts.mode == RunMode.distributed_index:
             # Start sg-accel
             status = run_ansible_playbook(
                 "start-sg-accel.yml",
@@ -171,7 +178,7 @@ class Cluster:
             assert(status == 0)
 
         # Validate CBGT
-        if mode == SGMode.distributed_index:
+        if run_opts.mode == RunMode.distributed_index:
             if not self.validate_cbgt_pindex_distribution_retry():
                 self.save_cbgt_diagnostics()
                 raise Exception("Failed to validate CBGT Pindex distribution")
@@ -179,7 +186,17 @@ class Cluster:
         else:
             log.info(">>> Running in channel cache")
 
-        return mode
+        return run_opts.mode
+
+    def validate_bucket_names(self, names, mode):
+        if mode == RunMode.channel_cache:
+            log.info("Validating channel cache buckets")
+            assert len(names) == 1 and "data-bucket" in names
+        elif mode == RunMode.distributed_index:
+            log.info("Validating distributed index buckets")
+            assert len(names) == 2 and "data-bucket" in names and "index-bucket" in names
+        else:
+            raise ValueError("Unsupported configuration mode.")
 
     def save_cbgt_diagnostics(self):
         
@@ -286,7 +303,7 @@ class Cluster:
                 log.error("sync_gateway down: {}".format(e))
                 errors.append((sg, e))
 
-        if mode == SGMode.distributed_index:
+        if mode == RunMode.distributed_index:
             for sa in self.sg_accels:
                 try:
                     info = sa.info()

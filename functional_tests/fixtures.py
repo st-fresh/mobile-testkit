@@ -13,23 +13,21 @@ import os.path
 
 import logging
 import lib.settings
-from lib.constants import SGMode
 
 log = logging.getLogger(lib.settings.LOGGER)
 
 
-class RunOptions:
-
-    valid_modes = [SGMode.distributed_index, SGMode.channel_cache]
-
-    def __init__(self, id, mode, reset_data):
-        self.id = id,
-
-        assert(mode in self.valid_modes)
+class TestRunOptions(object):
+    def __init__(self, id, reset, mode):
+        self.id = id
+        self.reset = reset
         self.mode = mode
 
-        self.reset_data = reset_data
+    def __repr__(self):
+        return "TestRunOptions: \n\tmode:{} \n\treset:{} \n\tid:{}\n".format(self.mode, self.reset, self.id)
 
+    def validate(self):
+        assert(self.mode in ["CC", "DI"])
 
 @pytest.fixture
 def cluster(request):
@@ -79,16 +77,15 @@ def run_opts(request):
     test_id = test_id.split("::")[1]
     test_id = test_id.replace("[", "-").replace("]", "-")
 
-    # Set reset parameters
-    log.info("--mode: {}".format(request.config.getoption("--mode")))
-    log.info("--reset-data: {}".format(request.config.getoption("--reset-data")))
-
-    options = RunOptions(
+    # Set test run options
+    options = TestRunOptions(
         id=test_id,
-        mode=request.config.getoption("--mode"),
-        reset_data=request.config.getoption("--reset-data")
+        reset=request.config.getoption("--reset"),
+        mode=request.config.getoption("--mode")
     )
 
+    log.info(options)
+    options.validate()
     return options
 
 
