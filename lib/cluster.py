@@ -148,9 +148,6 @@ class Cluster:
         # Buckets may be shared for different functionality
         bucket_name_set = list(set(bucket_names_from_config))
 
-        # Assert that conf author is alerted if they do not follow conventions for bucket naming
-        self.validate_bucket_names(bucket_name_set, run_opts.mode)
-
         if run_opts.reset or clean:
             log.info(">>> Creating buckets on: {}".format(self.servers[0].ip))
             log.info(">>> Creating buckets {}".format(bucket_name_set))
@@ -179,8 +176,8 @@ class Cluster:
 
         # Validate CBGT
         if run_opts.mode == RunMode.distributed_index:
-            if not self.validate_cbgt_pindex_distribution_retry():
-                self.save_cbgt_diagnostics()
+            if not self.validate_cbgt_pindex_distribution_retry(run_opts.id):
+                self.save_cbgt_diagnostics(run_opts.id)
                 raise Exception("Failed to validate CBGT Pindex distribution")
             log.info(">>> Detected valid CBGT Pindex distribution")
         else:
@@ -198,12 +195,12 @@ class Cluster:
         else:
             raise ValueError("Unsupported configuration mode.")
 
-    def save_cbgt_diagnostics(self):
+    def save_cbgt_diagnostics(self, test_id):
         
         # CBGT REST Admin API endpoint
         for sync_gateway_writer in self.sg_accels:
 
-            adminApi = Admin(sync_gateway_writer)
+            adminApi = Admin(sync_gateway_writer, test_id)
             cbgt_diagnostics = adminApi.get_cbgt_diagnostics()
             cbgt_cfg = adminApi.get_cbgt_cfg()
         
@@ -211,13 +208,13 @@ class Cluster:
             pretty_print_json = json.dumps(cbgt_diagnostics, sort_keys=True, indent=4, separators=(',', ': '))
             log.info("SG {} CBGT diagnostic output: {}".format(sync_gateway_writer, pretty_print_json))
         
-    def validate_cbgt_pindex_distribution_retry(self):
+    def validate_cbgt_pindex_distribution_retry(self, test_id):
         """
         Validates the CBGT pindex distribution by looking for nodes that don't have
         any pindexes assigned to it
         """
         for i in xrange(10):
-            is_valid = self.validate_cbgt_pindex_distribution()
+            is_valid = self.validate_cbgt_pindex_distribution(test_id)
             if is_valid:
                return True
             else:
@@ -226,13 +223,13 @@ class Cluster:
 
         return False 
 
-    def validate_cbgt_pindex_distribution(self):
+    def validate_cbgt_pindex_distribution(self, test_id):
 
         # build a map of node -> num_pindexes
         node_defs_pindex_counts = {}
 
         # CBGT REST Admin API endpoint 
-        adminApi = Admin(self.sg_accels[0])
+        adminApi = Admin(self.sg_accels[0], test_id)
         cbgt_cfg = adminApi.get_cbgt_cfg()
 
         # loop over the planpindexes and update the count for the node where it lives

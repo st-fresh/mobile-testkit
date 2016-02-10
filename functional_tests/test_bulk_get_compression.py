@@ -14,6 +14,7 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
+from fixtures import run_opts
 
 uncompressed_size = 6320500
 part_encoded_size = 2244500
@@ -114,7 +115,7 @@ def verify_response_size(user_agent, accept_encoding, x_accept_part_encoding, re
     ],
     ids=["CC-1", "CC-2", "CC-3", "CC-4", "CC-5", "CC-6", "CC-7", "CC-8", "CC-9", "CC-10", "CC-11", "CC-12"]
 )
-def test_bulk_get_compression(cluster, conf, num_docs, accept_encoding, x_accept_part_encoding, user_agent):
+def test_bulk_get_compression(cluster, run_opts, conf, num_docs, accept_encoding, x_accept_part_encoding, user_agent):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
@@ -123,7 +124,7 @@ def test_bulk_get_compression(cluster, conf, num_docs, accept_encoding, x_accept
     log.info("Using x_accept_part_encoding: {}".format(x_accept_part_encoding))
 
     mode = cluster.reset(conf)
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts)
 
     user = admin.register_user(cluster.sync_gateways[0], "db", "seth", "password", channels=["seth"])
 
