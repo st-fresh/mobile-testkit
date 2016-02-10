@@ -1,5 +1,6 @@
 from lib.verify import verify_changes
 from fixtures import cluster
+from fixtures import run_opts
 import time
 import pytest
 from lib.admin import Admin
@@ -13,11 +14,11 @@ log = logging.getLogger(settings.LOGGER)
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_docs", [100])
 @pytest.mark.parametrize("num_revisions", [10])
-def test_bucket_online_offline_resync_sanity(cluster, num_users, num_docs, num_revisions):
+def test_bucket_online_offline_resync_sanity(cluster, run_opts, num_users, num_docs, num_revisions):
     log.info("Starting test...")
     start = time.time()
 
-    mode = cluster.reset("bucket_online_offline/db_online_offline_access_all_cc.json")
+    mode = cluster.reset("bucket_online_offline/db_online_offline_access_all_cc.json", run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -28,7 +29,7 @@ def test_bucket_online_offline_resync_sanity(cluster, num_users, num_docs, num_r
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")
@@ -125,11 +126,11 @@ def test_bucket_online_offline_resync_sanity(cluster, num_users, num_docs, num_r
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_docs", [100])
 @pytest.mark.parametrize("num_revisions", [5])
-def test_bucket_online_offline_resync_with_online(cluster, num_users, num_docs, num_revisions):
+def test_bucket_online_offline_resync_with_online(cluster, run_opts, num_users, num_docs, num_revisions):
     log.info("Starting test...")
     start = time.time()
 
-    mode = cluster.reset("bucket_online_offline/db_online_offline_access_all_cc.json")
+    mode = cluster.reset("bucket_online_offline/db_online_offline_access_all_cc.json", run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -140,7 +141,7 @@ def test_bucket_online_offline_resync_with_online(cluster, num_users, num_docs, 
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")
@@ -286,11 +287,11 @@ def test_bucket_online_offline_resync_with_online(cluster, num_users, num_docs, 
 @pytest.mark.parametrize("num_users", [5])
 @pytest.mark.parametrize("num_docs", [100])
 @pytest.mark.parametrize("num_revisions", [5])
-def test_bucket_online_offline_resync_with_offline(cluster, num_users, num_docs, num_revisions):
+def test_bucket_online_offline_resync_with_offline(cluster, run_opts, num_users, num_docs, num_revisions):
     log.info("Starting test...")
     start = time.time()
 
-    mode = cluster.reset("bucket_online_offline/db_online_offline_access_all_cc.json")
+    mode = cluster.reset("bucket_online_offline/db_online_offline_access_all_cc.json", run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -301,7 +302,7 @@ def test_bucket_online_offline_resync_with_offline(cluster, num_users, num_docs,
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")

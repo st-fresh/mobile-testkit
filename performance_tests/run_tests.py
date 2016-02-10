@@ -5,10 +5,11 @@ import shutil
 import time
 
 from optparse import OptionParser
+
 from lib.cluster import Cluster
-
+from lib.constants import RunMode
+from functional_tests.fixtures import TestRunOptions
 from provision.ansible_runner import run_ansible_playbook
-
 
 import generate_gateload_configs
 
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     if opts.reset_sync_gateway:
         print "Resetting Sync Gateway"
         cluster = Cluster()
-        mode = cluster.reset("performance/sync_gateway_default_performance.json")
+        mode = cluster.reset("performance/sync_gateway_default_performance.json", TestRunOptions("Perf", True, RunMode.distributed_index))
         print("Running in mode: {}".format(mode))
 
     # Copy provisioning_config to performance_results/ folder

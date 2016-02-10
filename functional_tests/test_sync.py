@@ -9,6 +9,7 @@ from lib.verify import verify_same_docs
 from lib.verify import verify_docs_removed
 
 from fixtures import cluster
+from fixtures import run_opts
 
 import lib.settings
 import logging
@@ -24,13 +25,13 @@ log = logging.getLogger(lib.settings.LOGGER)
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_issue_1524(cluster, conf, num_docs):
+def test_issue_1524(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(config=conf)
-    admin = Admin(cluster.sync_gateways[0])
+    mode = cluster.reset(conf, run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     user_no_channels = admin.register_user(target=cluster.sync_gateways[0], db="db", name="user_no_channels", password="password")
     a_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="a_doc_pusher", password="password", channels=["A"])
@@ -96,14 +97,14 @@ def test_issue_1524(cluster, conf, num_docs):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_access_sanity(cluster, conf):
+def test_sync_access_sanity(cluster, run_opts, conf):
 
     num_docs = 100
 
     log.info("Using conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
-    admin = Admin(cluster.sync_gateways[0])
+    mode = cluster.reset(conf, run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password")
 
@@ -144,15 +145,15 @@ def test_sync_access_sanity(cluster, conf):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_channel_sanity(cluster, conf):
+def test_sync_channel_sanity(cluster, run_opts, conf):
 
     num_docs_per_channel = 100
     channels = ["ABC", "NBC", "CBS"]
 
     log.info("Using conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
-    admin = Admin(cluster.sync_gateways[0])
+    mode = cluster.reset(conf, run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     doc_pushers = []
     doc_pusher_caches = []
@@ -207,16 +208,16 @@ def test_sync_channel_sanity(cluster, conf):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_role_sanity(cluster, conf):
+def test_sync_role_sanity(cluster, run_opts, conf):
 
     num_docs_per_channel = 100
     tv_channels = ["ABC", "NBC", "CBS"]
 
     log.info("Using conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     admin.create_role(db="db", name="tv_stations", channels=tv_channels)
 
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password")
@@ -276,16 +277,16 @@ def test_sync_role_sanity(cluster, conf):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_sanity(cluster, conf):
+def test_sync_sanity(cluster, run_opts, conf):
 
     log.info("Using conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     radio_stations = ["KMOW", "HWOD", "KDWB"]
     number_of_docs_per_pusher = 5000
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     dj_0 = admin.register_user(target=cluster.sync_gateways[0], db="db", name="dj_0", password="password")
     access_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="access_doc_pusher", password="password")
@@ -322,16 +323,16 @@ def test_sync_sanity(cluster, conf):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_sanity_backfill(cluster, conf):
+def test_sync_sanity_backfill(cluster, run_opts, conf):
 
     log.info("Using conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     radio_stations = ["KMOW", "HWOD", "KDWB"]
     number_of_docs_per_pusher = 5000
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     dj_0 = admin.register_user(target=cluster.sync_gateways[0], db="db", name="dj_0", password="password")
 
@@ -368,11 +369,11 @@ def test_sync_sanity_backfill(cluster, conf):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_require_roles(cluster, conf):
+def test_sync_require_roles(cluster, run_opts, conf):
 
     log.info("Using conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     radio_stations = ["KMOW", "HWOD", "KDWB"]
     tv_stations = ["ABC", "CBS", "NBC"]
@@ -382,7 +383,7 @@ def test_sync_require_roles(cluster, conf):
 
     number_of_docs_per_pusher = 100
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     admin.create_role("db", name="radio_stations", channels=radio_stations)
     admin.create_role("db", name="tv_stations", channels=tv_stations)

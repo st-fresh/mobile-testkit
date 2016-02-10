@@ -4,6 +4,7 @@ from lib.user import User
 import concurrent.futures
 from lib.admin import Admin
 from fixtures import cluster
+from fixtures import run_opts
 import pytest
 from lib.parallelize import *
 import logging
@@ -21,7 +22,7 @@ log = logging.getLogger(settings.LOGGER)
         ],
         ids=["DI-1", "CC-1"]
 )
-def test_mulitple_users_mulitiple_channels_mulitple_revisions(cluster, conf, num_users, num_channels, num_docs, num_revisions):
+def test_mulitple_users_mulitiple_channels_mulitple_revisions(cluster, run_opts, conf, num_users, num_channels, num_docs, num_revisions):
 
     log.info("Starting test...")
     log.info("conf: {}".format(conf))
@@ -32,7 +33,7 @@ def test_mulitple_users_mulitiple_channels_mulitple_revisions(cluster, conf, num
 
     start = time.time()
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -45,7 +46,7 @@ def test_mulitple_users_mulitiple_channels_mulitple_revisions(cluster, conf, num
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")

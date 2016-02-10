@@ -4,7 +4,7 @@ from lib.user import User
 from lib.admin import Admin
 from lib.verify import verify_changes
 from fixtures import cluster
-import pytest
+from fixtures import run_opts
 
 import lib.settings
 import logging
@@ -23,14 +23,14 @@ log = logging.getLogger(lib.settings.LOGGER)
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_single_user_single_channel_doc_updates(cluster, conf, num_docs, num_revisions):
+def test_single_user_single_channel_doc_updates(cluster, run_opts, conf, num_docs, num_revisions):
 
     log.info("conf: {}".format(conf))
     log.info("num_docs: {}".format(num_docs))
     log.info("num_revisions: {}".format(num_revisions))
 
     start = time.time()
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
     num_docs = num_docs
     num_revisions = num_revisions
     username = "User-1"
@@ -39,7 +39,7 @@ def test_single_user_single_channel_doc_updates(cluster, conf, num_docs, num_rev
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     single_user = admin.register_user(target=sgs[0], db="db", name=username, password=password, channels=channels)
 

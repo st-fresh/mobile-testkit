@@ -10,6 +10,7 @@ import lib.settings
 import logging
 
 from fixtures import cluster
+from fixtures import run_opts
 
 log = logging.getLogger(lib.settings.LOGGER)
 
@@ -22,7 +23,7 @@ log = logging.getLogger(lib.settings.LOGGER)
     ],
     ids=["CC-1", "CC-2", "CC-3", "CC-4"]
 )
-def test_overloaded_channel_cache(cluster, conf, num_docs, user_channels, filter, limit):
+def test_overloaded_channel_cache(cluster, run_opts, conf, num_docs, user_channels, filter, limit):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
@@ -30,11 +31,11 @@ def test_overloaded_channel_cache(cluster, conf, num_docs, user_channels, filter
     log.info("Using filter: {}".format(filter))
     log.info("Using limit: {}".format(limit))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     target_sg = cluster.sync_gateways[0]
 
-    admin = Admin(target_sg)
+    admin = Admin(target_sg, run_opts.id)
 
     users = admin.register_bulk_users(target_sg, "db", "user", 1000, "password", [user_channels])
     assert len(users) == 1000

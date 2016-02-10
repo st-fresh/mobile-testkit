@@ -11,7 +11,7 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
-
+from fixtures import run_opts
 
 @pytest.mark.parametrize(
         "conf, num_users, num_docs, num_revisions", [
@@ -20,15 +20,15 @@ from fixtures import cluster
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_seq(cluster, conf, num_users, num_docs, num_revisions):
+def test_seq(cluster, run_opts, conf, num_users, num_docs, num_revisions):
 
     log.info("conf: {}".format(conf))
     log.info("num_users: {}".format(num_users))
     log.info("num_docs: {}".format(num_docs))
     log.info("num_revisions: {}".format(num_revisions))
 
-    mode = cluster.reset(config=conf)
-    admin = Admin(cluster.sync_gateways[0])
+    mode = cluster.reset(conf, run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all users will share docs due to having the same channel
     users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db", name_prefix="user", number=num_users, password="password", channels=["ABC"])

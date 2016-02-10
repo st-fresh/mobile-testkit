@@ -13,6 +13,7 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
+from fixtures import run_opts
 
 
 @pytest.mark.parametrize(
@@ -29,15 +30,15 @@ from fixtures import cluster
             "CC-4"
         ]
 )
-def test_longpoll_changes_parametrized(cluster,conf, num_docs, num_revisions):
+def test_longpoll_changes_parametrized(cluster, run_opts,conf, num_docs, num_revisions):
 
     log.info("conf: {}".format(conf))
     log.info("num_docs: {}".format(num_docs))
     log.info("num_revisions: {}".format(num_revisions))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["ABC", "TERMINATE"])
     abc_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="abc_doc_pusher", password="password", channels=["ABC"])
     doc_terminator = admin.register_user(target=cluster.sync_gateways[0], db="db", name="doc_terminator", password="password", channels=["TERMINATE"])
@@ -81,15 +82,15 @@ def test_longpoll_changes_parametrized(cluster,conf, num_docs, num_revisions):
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_longpoll_changes_sanity(cluster, conf, num_docs, num_revisions):
+def test_longpoll_changes_sanity(cluster, run_opts, conf, num_docs, num_revisions):
 
     log.info("conf: {}".format(conf))
     log.info("num_docs: {}".format(num_docs))
     log.info("num_revisions: {}".format(num_revisions))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["ABC", "TERMINATE"])
     abc_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="abc_doc_pusher", password="password", channels=["ABC"])
     doc_terminator = admin.register_user(target=cluster.sync_gateways[0], db="db", name="doc_terminator", password="password", channels=["TERMINATE"])

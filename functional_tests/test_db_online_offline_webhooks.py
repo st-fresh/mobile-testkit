@@ -4,6 +4,7 @@ from lib.user import User
 import concurrent.futures
 from lib.admin import Admin
 from fixtures import cluster
+from fixtures import run_opts
 from lib.web_server import WebServer
 import pytest
 from lib.parallelize import *
@@ -15,12 +16,12 @@ log = logging.getLogger(settings.LOGGER)
 @pytest.mark.parametrize("num_channels", [1]) #all users share all channels
 @pytest.mark.parametrize("num_docs", [1])
 @pytest.mark.parametrize("num_revisions", [2])
-def test_webhooks(cluster, num_users,num_channels, num_docs, num_revisions):
+def test_webhooks(cluster, run_opts, num_users,num_channels, num_docs, num_revisions):
 
     log.info("Starting test...")
     start = time.time()
 
-    mode = cluster.reset(config="sync_gateway_webhook_cc.json")
+    mode = cluster.reset("sync_gateway_webhook_cc.json", run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -32,7 +33,7 @@ def test_webhooks(cluster, num_users,num_channels, num_docs, num_revisions):
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")
@@ -62,12 +63,12 @@ def test_webhooks(cluster, num_users,num_channels, num_docs, num_revisions):
 @pytest.mark.parametrize("num_channels", [1]) #all users share all channels
 @pytest.mark.parametrize("num_docs", [1])
 @pytest.mark.parametrize("num_revisions", [2])
-def test_db_online_offline_webhooks_offline(cluster, num_users,num_channels, num_docs, num_revisions):
+def test_db_online_offline_webhooks_offline(cluster, run_opts, num_users,num_channels, num_docs, num_revisions):
 
     log.info("Starting test...")
     start = time.time()
 
-    mode = cluster.reset(config="sync_gateway_webhook_cc.json")
+    mode = cluster.reset("sync_gateway_webhook_cc.json", run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -79,7 +80,7 @@ def test_db_online_offline_webhooks_offline(cluster, num_users,num_channels, num
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")
@@ -131,12 +132,12 @@ def test_db_online_offline_webhooks_offline(cluster, num_users,num_channels, num
 @pytest.mark.parametrize("num_channels", [1]) #all users share all channels
 @pytest.mark.parametrize("num_docs", [1])
 @pytest.mark.parametrize("num_revisions", [2])
-def test_db_online_offline_webhooks_offline(cluster, num_users,num_channels, num_docs, num_revisions):
+def test_db_online_offline_webhooks_offline(cluster, run_opts, num_users,num_channels, num_docs, num_revisions):
 
     log.info("Starting test...")
     start = time.time()
 
-    mode = cluster.reset(config="sync_gateway_webhook_cc.json")
+    mode = cluster.reset("sync_gateway_webhook_cc.json", run_opts)
 
     init_completed = time.time()
     log.info("Initialization completed. Time taken:{}s".format(init_completed - start))
@@ -148,7 +149,7 @@ def test_db_online_offline_webhooks_offline(cluster, num_users,num_channels, num
 
     sgs = cluster.sync_gateways
 
-    admin = Admin(sgs[0])
+    admin = Admin(sgs[0], run_opts.id)
 
     # Register User
     log.info("Register User")

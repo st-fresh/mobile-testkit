@@ -123,7 +123,7 @@ def test_bulk_get_compression(cluster, run_opts, conf, num_docs, accept_encoding
     log.info("Using accept_encoding: {}".format(accept_encoding))
     log.info("Using x_accept_part_encoding: {}".format(x_accept_part_encoding))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
     admin = Admin(cluster.sync_gateways[0], run_opts)
 
     user = admin.register_user(cluster.sync_gateways[0], "db", "seth", "password", channels=["seth"])

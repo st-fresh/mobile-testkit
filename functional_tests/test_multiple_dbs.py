@@ -10,6 +10,7 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
+from fixtures import run_opts
 
 
 @pytest.mark.parametrize(
@@ -20,20 +21,20 @@ from fixtures import cluster
     ],
     ids=["RESET-DI-1", "RESET-CC-2"]
 )
-def test_multiple_db_unique_data_bucket_unique_index_bucket(cluster, conf, num_users, num_docs_per_user):
+def test_multiple_db_unique_data_bucket_unique_index_bucket(cluster, run_opts, conf, num_users, num_docs_per_user):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_users: {}".format(num_users))
     log.info("Using num_docs_per_user: {}".format(num_docs_per_user))
 
     # 2 dbs have unique data and unique index buckets
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     num_db_users = num_users
     num_db2_users = num_users
     num_docs_per_user = num_docs_per_user
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     db_one_users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db", name_prefix="bulk_db_user", number=num_db_users, password="password", channels=["ABC"])
     db_two_users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db2", name_prefix="bulk_db2_user", number=num_db2_users, password="password", channels=["ABC"])
@@ -73,20 +74,20 @@ def test_multiple_db_unique_data_bucket_unique_index_bucket(cluster, conf, num_u
     ],
     ids=["RESET-DI-1", "RESET-CC-2"]
 )
-def test_multiple_db_single_data_bucket_single_index_bucket(cluster, conf, num_users, num_docs_per_user):
+def test_multiple_db_single_data_bucket_single_index_bucket(cluster, run_opts, conf, num_users, num_docs_per_user):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_users: {}".format(num_users))
     log.info("Using num_docs_per_user: {}".format(num_docs_per_user))
 
     # 2 dbs share the same data and index bucket
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     num_db_users = num_users
     num_db2_users = num_users
     num_docs_per_user = num_docs_per_user
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     db_one_users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db", name_prefix="bulk_db_user", number=num_db_users, password="password", channels=["ABC"])
     db_two_users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db2", name_prefix="bulk_db2_user", number=num_db2_users, password="password", channels=["ABC"])

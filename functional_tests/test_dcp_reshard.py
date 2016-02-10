@@ -10,6 +10,7 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
+from fixtures import run_opts
 
 
 @pytest.mark.parametrize(
@@ -18,13 +19,13 @@ from fixtures import cluster
         ],
         ids=["DI-1"]
 )
-def test_dcp_reshard_sync_gateway_goes_down(cluster, conf):
+def test_dcp_reshard_sync_gateway_goes_down(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     traun = admin.register_user(target=cluster.sync_gateways[0], db="db", name="traun", password="password", channels=["ABC", "NBC", "CBS"])
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["FOX"])
@@ -69,14 +70,14 @@ def test_dcp_reshard_sync_gateway_goes_down(cluster, conf):
         ],
         ids=["DI-1"]
 )
-def test_dcp_reshard_sync_gateway_comes_up(cluster, conf):
+def test_dcp_reshard_sync_gateway_comes_up(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
     cluster.sg_accels[0].stop()
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     traun = admin.register_user(target=cluster.sync_gateways[0], db="db", name="traun", password="password", channels=["ABC", "NBC", "CBS"])
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["FOX"])
@@ -122,16 +123,16 @@ def test_dcp_reshard_sync_gateway_comes_up(cluster, conf):
         ],
         ids=["DI-1"]
 )
-def test_dcp_reshard_single_sg_accel_goes_down_and_up(cluster, conf):
+def test_dcp_reshard_single_sg_accel_goes_down_and_up(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     # Stop the second sg_accel
     cluster.sg_accels[1].stop()
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     traun = admin.register_user(target=cluster.sync_gateways[0], db="db", name="traun", password="password", channels=["ABC", "NBC", "CBS"])
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["FOX"])

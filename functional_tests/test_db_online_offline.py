@@ -13,6 +13,7 @@ from requests.exceptions import HTTPError
 from requests.exceptions import RetryError
 
 from fixtures import cluster
+from fixtures import run_opts
 from multiprocessing.pool import ThreadPool
 
 
@@ -49,7 +50,7 @@ def rest_scan(sync_gateway, db, online, num_docs, user_name, channels):
     # TODO: POST /{db}/_facebook_token
     # TODO: POST /{db}/_persona_assertion
 
-    admin = Admin(sync_gateway=sync_gateway)
+    admin = Admin(sync_gateway, run_opts.id)
 
     error_responses = list()
 
@@ -203,12 +204,12 @@ def rest_scan(sync_gateway, db, online, num_docs, user_name, channels):
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_online_default_rest(cluster, conf, num_docs):
+def test_online_default_rest(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
     # all db endpoints should function as expected
     errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
@@ -217,7 +218,7 @@ def test_online_default_rest(cluster, conf, num_docs):
     # Scenario 4
     # Check the db has an Online state at each running sync_gateway
     for sg in cluster.sync_gateways:
-        admin = Admin(sg)
+        admin = Admin(sg, run_opts.id)
         db_info = admin.get_db_info("db")
         assert (db_info["state"] == "Online")
 
@@ -235,12 +236,12 @@ def test_online_default_rest(cluster, conf, num_docs):
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_offline_false_config_rest(cluster, conf, num_docs):
+def test_offline_false_config_rest(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
     # all db endpoints should function as expected
     errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
@@ -250,7 +251,7 @@ def test_offline_false_config_rest(cluster, conf, num_docs):
     # Scenario 4
     # Check the db has an Online state at each running sync_gateway
     for sg in cluster.sync_gateways:
-        admin = Admin(sg)
+        admin = Admin(sg, run_opts.id)
         db_info = admin.get_db_info("db")
         assert (db_info["state"] == "Online")
 
@@ -268,13 +269,13 @@ def test_offline_false_config_rest(cluster, conf, num_docs):
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_online_to_offline_check_503(cluster, conf, num_docs):
+def test_online_to_offline_check_503(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
-    admin = Admin(cluster.sync_gateways[0])
+    mode = cluster.reset(conf, run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all db endpoints should function as expected
     errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
@@ -310,13 +311,13 @@ def test_online_to_offline_check_503(cluster, conf, num_docs):
          #"DI-2"
         ]
 )
-def test_online_to_offline_changes_feed_controlled_close_continuous(cluster, conf, num_docs):
+def test_online_to_offline_changes_feed_controlled_close_continuous(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
-    admin = Admin(cluster.sync_gateways[0])
+    mode = cluster.reset(conf, run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["ABC"])
     doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="doc_pusher", password="password", channels=["ABC"])
 
@@ -380,14 +381,14 @@ def test_online_to_offline_changes_feed_controlled_close_continuous(cluster, con
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_online_to_offline_continous_changes_feed_controlled_close_sanity_mulitple_users(cluster, conf, num_docs, num_users):
+def test_online_to_offline_continous_changes_feed_controlled_close_sanity_mulitple_users(cluster, run_opts, conf, num_docs, num_users):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db", name_prefix="user", password="password", number=num_users, channels=["ABC"])
 
     feed_close_results = list()
@@ -438,14 +439,14 @@ def test_online_to_offline_continous_changes_feed_controlled_close_sanity_mulitp
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_online_to_offline_changes_feed_controlled_close_longpoll_sanity(cluster, conf, num_docs):
+def test_online_to_offline_changes_feed_controlled_close_longpoll_sanity(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["ABC"])
 
     docs_in_changes = dict()
@@ -494,14 +495,14 @@ def test_online_to_offline_changes_feed_controlled_close_longpoll_sanity(cluster
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_online_to_offline_longpoll_changes_feed_controlled_close_sanity_mulitple_users(cluster, conf, num_docs, num_users):
+def test_online_to_offline_longpoll_changes_feed_controlled_close_sanity_mulitple_users(cluster, run_opts, conf, num_docs, num_users):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     users = admin.register_bulk_users(target=cluster.sync_gateways[0], db="db", name_prefix="user", password="password", number=num_users, channels=["ABC"])
 
     feed_close_results = list()
@@ -560,14 +561,14 @@ def test_online_to_offline_longpoll_changes_feed_controlled_close_sanity_mulitpl
         #"DI-2"
     ]
 )
-def test_online_to_offline_changes_feed_controlled_close_longpoll(cluster, conf, num_docs):
+def test_online_to_offline_changes_feed_controlled_close_longpoll(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
     seth = admin.register_user(target=cluster.sync_gateways[0], db="db", name="seth", password="password", channels=["ABC"])
     doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="doc_pusher", password="password", channels=["ABC"])
 
@@ -652,14 +653,14 @@ def test_online_to_offline_changes_feed_controlled_close_longpoll(cluster, conf,
     #    "DI-2"
     ]
 )
-def test_offline_true_config_bring_online(cluster, conf, num_docs):
+def test_offline_true_config_bring_online(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all db endpoints should fail with 503
     errors = rest_scan(cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
@@ -693,14 +694,14 @@ def test_offline_true_config_bring_online(cluster, conf, num_docs):
     ],
     ids=["CC-1", "CC-2", "DI-3"]
 )
-def test_db_offline_tap_loss_sanity(cluster, conf, num_docs):
+def test_db_offline_tap_loss_sanity(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all db rest enpoints should succeed
     errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
@@ -733,14 +734,14 @@ def test_db_offline_tap_loss_sanity(cluster, conf, num_docs):
          #"DI-2"
          ]
 )
-def test_db_delayed_online(cluster, conf, num_docs):
+def test_db_delayed_online(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     time.sleep(2)
     status = admin.take_db_offline("db")
@@ -778,12 +779,12 @@ def test_db_delayed_online(cluster, conf, num_docs):
     ],
     ids=["CC-1", "DI-2"]
 )
-def test_multiple_dbs_unique_buckets_lose_tap(cluster, conf, num_docs):
+def test_multiple_dbs_unique_buckets_lose_tap(cluster, run_opts, conf, num_docs):
 
     log.info("Using conf: {}".format(conf))
     log.info("Using num_docs: {}".format(num_docs))
 
-    mode = cluster.reset(conf)
+    mode = cluster.reset(conf, run_opts)
 
     dbs = ["db1", "db2", "db3", "db4"]
 

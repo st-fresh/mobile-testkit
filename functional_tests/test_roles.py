@@ -11,6 +11,7 @@ import logging
 log = logging.getLogger(lib.settings.LOGGER)
 
 from fixtures import cluster
+from fixtures import run_opts
 
 
 @pytest.mark.parametrize(
@@ -20,11 +21,11 @@ from fixtures import cluster
         ],
         ids=["DI-1", "CC-2"]
 )
-def test_roles_sanity(cluster, conf):
+def test_roles_sanity(cluster, run_opts, conf):
 
     log.info("conf: {}".format(conf))
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(conf, run_opts)
 
     radio_stations = ["KMOW", "HWOD", "KDWB"]
     tv_stations = ["ABC", "CBS", "NBC"]
@@ -34,7 +35,7 @@ def test_roles_sanity(cluster, conf):
 
     number_of_docs_per_pusher = 500
 
-    admin = Admin(cluster.sync_gateways[0])
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     admin.create_role("db", name="radio_stations", channels=radio_stations)
     admin.create_role("db", name="tv_stations", channels=tv_stations)
