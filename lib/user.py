@@ -220,8 +220,7 @@ class User:
 
         for i in range(num_revision):
 
-            doc_with_test_id = "{}-{}".format(self.id, doc_id)
-            doc_url = "{}/{}/{}".format(self.target.url, self.db, doc_with_test_id)
+            doc_url = "{}/{}/{}".format(self.target.url, self.db, doc_id)
 
             resp = requests.get(doc_url, headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
             log.debug("{0} GET {1}".format(self.name, resp.url))

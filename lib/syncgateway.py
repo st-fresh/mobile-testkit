@@ -54,4 +54,4 @@ class SyncGateway:
         return status
 
     def __repr__(self):
-        return "SyncGateway: {}:{}\n".format(self.hostname, self.ip)
+        return "SyncGateway: {}:{}".format(self.hostname, self.ip)

@@ -87,6 +87,6 @@ class Server:
         )
 
     def __repr__(self):
-        return "Server: {}:{}\n".format(self.hostname, self.ip)
+        return "Server: {}:{}".format(self.hostname, self.ip)
 
 

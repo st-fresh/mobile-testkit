@@ -3,10 +3,12 @@ import os
 from optparse import OptionParser
 
 from lib.cluster import Cluster
+from lib.constants import RunMode
+from functional_tests.fixtures import TestRunOptions
 
 if __name__ == "__main__":
     usage = """usage: reset_cluster.py
-    --cong=<name-of-conf>
+    --conf=<name-of-conf>
     """
 
     parser = OptionParser(usage=usage)
@@ -20,6 +22,12 @@ if __name__ == "__main__":
     (opts, args) = parser.parse_args(arg_parameters)
 
     cluster = Cluster()
-    cluster.reset(opts.conf)
+    if opts.conf.endswith("_cc.json"):
+        run_mode = RunMode.channel_cache
+    else:
+        run_mode = RunMode.distributed_index
+
+    print("Reseting cluster with the conf: {}, Detected {} mode".format(opts.conf, run_mode))
+    cluster.reset(opts.conf, TestRunOptions("Provision", True, run_mode))
 
 

@@ -41,4 +41,4 @@ class SgAccel:
         return status
 
     def __repr__(self):
-        return "SgAccel: {}:{}\n".format(self.hostname, self.ip)
+        return "SgAccel: {}:{}".format(self.hostname, self.ip)
