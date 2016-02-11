@@ -85,16 +85,16 @@ if __name__ == "__main__":
         shutil.rmtree("results/")
     os.makedirs("results")
 
-    if opts.test:
+    if opts.test and opts.mode:
         # Target individual test with optional repeat
         log.info("Running individual test(s) matching the pattern {}".format(opts.test))
         count = 0
         while count < opts.repeat:
-            status = pytest.main('-s --junit-xml=results-{}.xml --mode="DI" -k "{} and DI"'.format(count, opts.test), plugins=plugins)
+            status = pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{}"'.format(opts.test, count, opts.mode, opts.test), plugins=plugins)
             if opts.repeat > 1 and status != 0:
                 # Break loop in first failure if repeating
                 break
-            status = pytest.main('-s --junit-xml=results-{}.xml --mode="CC" -k "{} and CC"'.format(count, opts.test), plugins=plugins)
+            status = pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{}"'.format(opts.test, count, opts.mode, opts.test), plugins=plugins)
             if opts.repeat > 1 and status != 0:
                 # Break loop in first failure if repeating
                 break

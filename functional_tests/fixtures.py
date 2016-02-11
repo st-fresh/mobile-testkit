@@ -23,9 +23,6 @@ class TestRunOptions(object):
         self.reset = reset
         self.mode = mode
 
-    def __repr__(self):
-        return "TestRunOptions: \n\tmode:{} \n\treset:{} \n\tid:{}\n".format(self.mode, self.reset, self.id)
-
     def validate(self):
         assert(self.mode in ["CC", "DI"])
 
@@ -61,15 +58,24 @@ def cluster(request):
 
     # Create cluster
     c = Cluster()
-    log.info(c)
+    log.info("CLUSTER")
+    for server in c.servers:
+        log.info(server)
+    for sync_gateway in c.sync_gateways:
+        log.info(sync_gateway)
+    for sg_accel in c.sg_accels:
+        log.info(sg_accel)
+    for load_gen in c.load_generators:
+        log.info(load_gen)
 
     return c
 
 
 @pytest.fixture
 def run_opts(request):
+
     # Create test id
-    log.info("\n--------- IDENTIFIER -----------")
+    log.info("--------- RUN OPTIONS -----------")
 
     # Follow the pattern {test-name}-{id}
     random = base64.urlsafe_b64encode(os.urandom(6))
@@ -84,8 +90,12 @@ def run_opts(request):
         mode=request.config.getoption("--mode")
     )
 
-    log.info(options)
+    log.info("SYNC_GATEWAY MODE: {}".format(options.mode))
+    log.info("RESET?: {}".format(options.reset))
+    log.info("TEST ID: {}".format(options.id))
+
     options.validate()
+
     return options
 
 
@@ -109,9 +119,6 @@ def detected_pattern(pattern, zip_file_path):
     if exit_code == 0:
         log.info("Detected pattern {}: {}".format(pattern, output))
     return exit_code == 0
-
-
-
 
 
 

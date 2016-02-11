@@ -5,6 +5,7 @@ import concurrent.futures
 import subprocess
 import json
 import os
+import base64
 
 import lib.settings
 from lib.data import Data
@@ -16,31 +17,36 @@ log = logging.getLogger(lib.settings.LOGGER)
 from fixtures import cluster
 from fixtures import run_opts
 
-uncompressed_size = 6320500
-part_encoded_size = 2244500
-whole_response_compressed_size = 75500
+uncompressed_size = 6344956
+part_encoded_size = 2255086
+whole_response_compressed_size = 76476
 
-def issue_request(target, user_agent, accept_encoding, x_accept_part_encoding, payload):
+delta = 1000
+
+def issue_request(target, user_agent, test_id, accept_encoding, x_accept_part_encoding, payload):
+
+    auth = base64.b64encode("{}-seth:password".format(test_id).encode())
+    auth = auth.decode("UTF-8")
 
     # Set proper headers
     if user_agent is None:
         if accept_encoding is None and x_accept_part_encoding is None:
-            headers = '-H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'
+            headers = '-H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(auth)
         elif accept_encoding == "gzip" and x_accept_part_encoding is None:
-            headers = '-H "Accept-Encoding: gzip" -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'
+            headers = '-H "Accept-Encoding: gzip" -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(auth)
         elif accept_encoding is None and x_accept_part_encoding == "gzip":
-            headers = '-H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'
+            headers = '-H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(auth)
         elif accept_encoding == "gzip" and x_accept_part_encoding == "gzip":
-            headers = '-H "Accept-Encoding: gzip" -H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'
+            headers = '-H "Accept-Encoding: gzip" -H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(auth)
     else:
         if accept_encoding is None and x_accept_part_encoding is None:
-            headers = '-A {} -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'.format(user_agent)
+            headers = '-A {} -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(user_agent, auth)
         elif accept_encoding == "gzip" and x_accept_part_encoding is None:
-            headers = '-A {} -H "Accept-Encoding: gzip" -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'.format(user_agent)
+            headers = '-A {} -H "Accept-Encoding: gzip" -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(user_agent, auth)
         elif accept_encoding is None and x_accept_part_encoding == "gzip":
-            headers = '-A {} -H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'.format(user_agent)
+            headers = '-A {} -H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(user_agent, auth)
         elif accept_encoding == "gzip" and x_accept_part_encoding == "gzip":
-            headers = '-A {} -H "Accept-Encoding: gzip" -H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic c2V0aDpwYXNzd29yZA==" -H "Content-Type: application/json"'.format(user_agent)
+            headers = '-A {} -H "Accept-Encoding: gzip" -H "X-Accept-Part-Encoding: gzip" -H "Authorization: Basic {}" -H "Content-Type: application/json"'.format(user_agent, auth)
 
     # Issue curl and write response to disc
     bulk_get_curl_command = 'curl -X "POST" {0}/db/_bulk_get {1} -d $\'{2}\''.format(
@@ -67,31 +73,31 @@ def verify_response_size(user_agent, accept_encoding, x_accept_part_encoding, re
 
         if accept_encoding is None and x_accept_part_encoding is None:
             # Response size should not be compressed
-            assert((uncompressed_size - 500) < response_size < (uncompressed_size + 500))
+            assert((uncompressed_size - delta) < response_size < (uncompressed_size + delta))
         elif accept_encoding == "gzip" and x_accept_part_encoding is None:
             # Response size should not be compressed
-            assert((uncompressed_size - 500) < response_size < (uncompressed_size + 500))
+            assert((uncompressed_size - delta) < response_size < (uncompressed_size + delta))
         elif accept_encoding is None and x_accept_part_encoding == "gzip":
             # Response size should be part compressed
-            assert((part_encoded_size - 500) < response_size < (part_encoded_size + 500))
+            assert((part_encoded_size - delta) < response_size < (part_encoded_size + delta))
         elif accept_encoding == "gzip" and x_accept_part_encoding == "gzip":
             # Response size should be part compressed
-            assert((part_encoded_size - 500) < response_size < (part_encoded_size + 500))
+            assert((part_encoded_size - delta) < response_size < (part_encoded_size + delta))
 
     elif user_agent == "CouchbaseLite/1.2":
 
         if accept_encoding is None and x_accept_part_encoding is None:
             # Response size should not be compressed
-            assert((uncompressed_size - 500) < response_size < (uncompressed_size + 500))
+            assert((uncompressed_size - delta) < response_size < (uncompressed_size + delta))
         elif accept_encoding == "gzip" and x_accept_part_encoding is None:
             # Response size should be fully compressed
-            assert((whole_response_compressed_size - 500) < response_size < (whole_response_compressed_size + 500))
+            assert((whole_response_compressed_size - delta) < response_size < (whole_response_compressed_size + delta))
         elif accept_encoding is None and x_accept_part_encoding == "gzip":
             # Response size should be part compressed
-            assert((part_encoded_size - 500) < response_size < (part_encoded_size + 500))
+            assert((part_encoded_size - delta) < response_size < (part_encoded_size + delta))
         elif accept_encoding == "gzip" and x_accept_part_encoding == "gzip":
             # Response size should be fully compressed
-            assert((whole_response_compressed_size - 500) < response_size < (whole_response_compressed_size + 500))
+            assert((whole_response_compressed_size - delta) < response_size < (whole_response_compressed_size + delta))
 
     else:
         raise ValueError("Unsupported user agent")
@@ -124,7 +130,7 @@ def test_bulk_get_compression(cluster, run_opts, conf, num_docs, accept_encoding
     log.info("Using x_accept_part_encoding: {}".format(x_accept_part_encoding))
 
     mode = cluster.reset(conf, run_opts)
-    admin = Admin(cluster.sync_gateways[0], run_opts)
+    admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     user = admin.register_user(cluster.sync_gateways[0], "db", "seth", "password", channels=["seth"])
 
@@ -138,11 +144,11 @@ def test_bulk_get_compression(cluster, run_opts, conf, num_docs, accept_encoding
             except Exception as e:
                 log.error("Failed to push doc: {}".format(e))
 
-    docs = [{"id": "test-{}".format(i)} for i in range(num_docs)]
+    docs = [{"id": "{}-test-{}".format(run_opts.id, i)} for i in range(num_docs)]
     payload = {"docs": docs}
 
     # Issue curl request and get size of request
-    response_size = issue_request(cluster.sync_gateways[0], user_agent, accept_encoding, x_accept_part_encoding, payload)
+    response_size = issue_request(cluster.sync_gateways[0], user_agent, run_opts.id, accept_encoding, x_accept_part_encoding, payload)
     log.info("Response size: {}".format(response_size))
 
     # Verfiy size matches expected size
