@@ -40,7 +40,10 @@ class User:
     # GET /{db}/{local-doc-id}
     def get_doc(self, doc_id):
 
-        doc_with_test_id = "{}-{}".format(self.id, doc_id)
+        if doc_id.startswith("_local/"):
+            doc_with_test_id = "_local/{}-{}".format(self.id, doc_id[7:])
+        else:
+            doc_with_test_id = "{}-{}".format(self.id, doc_id)
 
         resp = requests.get("{0}/{1}/{2}".format(self.target.url, self.db, doc_with_test_id), headers=self._headers)
         log.debug("GET {}".format(resp.url))
@@ -77,7 +80,7 @@ class User:
 
     # PUT /{db}/{doc}
     # PUT /{db}/{local-doc-id}
-    def add_doc(self, doc_id, content=None, retries=False):
+    def add_doc(self, doc_id=None, content=None, retries=False):
 
         doc_body = dict()
         doc_body["updates"] = 0
@@ -90,14 +93,14 @@ class User:
 
         body = json.dumps(doc_body)
 
-        # if doc_id is None:
-        #     # Use a POST and let sync_gateway generate an id
-        #     resp = requests.post("{0}/{1}/".format(self.target.url, self.db), headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-        #     log.debug("{0} POST {1}".format(self.name, resp.url))
-        # else:
-        # If the doc id is specified, use PUT with doc_id in url
+        if doc_id is None:
+            doc_with_test_id = "{}-{}".format(self.id, uuid.uuid4())
+        elif doc_id.startswith("_local/"):
+            doc_with_test_id = "_local/{}-{}".format(self.id, doc_id[7:])
+        else:
+            doc_with_test_id = "{}-{}".format(self.id, doc_id)
 
-        doc_with_test_id = "{}-{}".format(self.id, doc_id)
+        # If the doc id is specified, use PUT with doc_id in url
         doc_url = "{}/{}/{}".format(self.target.url, self.db, doc_with_test_id)
 
         if retries:
@@ -115,13 +118,9 @@ class User:
 
         # 200 as result of POST to /{db}/, 201 is result of PUT to /{db}/{doc}
         if resp.status_code == 200 or resp.status_code == 201:
-            if doc_id is None:
-                # Get id generated from sync_gateway in response
-                doc_id = resp_json["id"]
-                self.cache[doc_id] = resp_json["rev"]
-            elif doc_id is not None and not doc_id.startswith("_local/"):
+            if not doc_with_test_id.startswith("_local/"):
                 # Do not store local docs in user cache because they will not show up in the _changes feed
-                self.cache[doc_with_test_id] = resp_json["rev"]
+                self.cache[resp_json["id"]] = resp_json["rev"]
 
         return doc_id
 

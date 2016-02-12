@@ -22,7 +22,7 @@ log = logging.getLogger(lib.settings.LOGGER)
 
 NUM_ENDPOINTS = 13
 
-def rest_scan(sync_gateway, db, online, num_docs, user_name, channels):
+def rest_scan(test_id, sync_gateway, db, online, num_docs, user_name, channels):
 
     # Missing ADMIN
     # TODO: GET /{db}/_session/{session-id}
@@ -50,7 +50,7 @@ def rest_scan(sync_gateway, db, online, num_docs, user_name, channels):
     # TODO: POST /{db}/_facebook_token
     # TODO: POST /{db}/_persona_assertion
 
-    admin = Admin(sync_gateway, run_opts.id)
+    admin = Admin(sync_gateway, test_id)
 
     error_responses = list()
 
@@ -212,7 +212,7 @@ def test_online_default_rest(cluster, run_opts, conf, num_docs):
     mode = cluster.reset(conf, run_opts)
 
     # all db endpoints should function as expected
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
     assert(len(errors) == 0)
 
     # Scenario 4
@@ -244,7 +244,7 @@ def test_offline_false_config_rest(cluster, run_opts, conf, num_docs):
     mode = cluster.reset(conf, run_opts)
 
     # all db endpoints should function as expected
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
 
     assert(len(errors) == 0)
 
@@ -278,7 +278,7 @@ def test_online_to_offline_check_503(cluster, run_opts, conf, num_docs):
     admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all db endpoints should function as expected
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
     assert(len(errors) == 0)
 
     # Take bucket offline
@@ -286,7 +286,7 @@ def test_online_to_offline_check_503(cluster, run_opts, conf, num_docs):
     assert(status == 200)
 
     # all db endpoints should return 503
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
 
     # We hit NUM_ENDPOINT unique REST endpoints + num of doc PUT failures
     assert(len(errors) == NUM_ENDPOINTS + (num_docs * 2))
@@ -663,7 +663,7 @@ def test_offline_true_config_bring_online(cluster, run_opts, conf, num_docs):
     admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all db endpoints should fail with 503
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
 
     assert(len(errors) == NUM_ENDPOINTS + (num_docs * 2))
     for error_tuple in errors:
@@ -676,7 +676,7 @@ def test_offline_true_config_bring_online(cluster, run_opts, conf, num_docs):
     assert status == 200
 
     # all db endpoints should succeed
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
     assert(len(errors) == 0)
 
     # Verify all sync_gateways are running
@@ -704,14 +704,14 @@ def test_db_offline_tap_loss_sanity(cluster, run_opts, conf, num_docs):
     admin = Admin(cluster.sync_gateways[0], run_opts.id)
 
     # all db rest enpoints should succeed
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
     assert(len(errors) == 0)
 
     # Delete bucket to sever TAP feed
     cluster.servers[0].delete_bucket("data-bucket")
 
     # Check that bucket is in offline state
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
     assert(len(errors) == NUM_ENDPOINTS + (num_docs * 2))
     for error_tuple in errors:
         log.error("({},{})".format(error_tuple[0], error_tuple[1]))
@@ -763,7 +763,7 @@ def test_db_delayed_online(cluster, run_opts, conf, num_docs):
     assert (db_info["state"] == "Online")
 
     # all db rest enpoints should succeed
-    errors = rest_scan(cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+    errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db="db", online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
     assert(len(errors) == 0)
 
     # Verify all sync_gateways are running
@@ -790,7 +790,7 @@ def test_multiple_dbs_unique_buckets_lose_tap(cluster, run_opts, conf, num_docs)
 
     # all db rest endpoints should succeed
     for db in dbs:
-        errors = rest_scan(cluster.sync_gateways[0], db=db, online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
+        errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db=db, online=True, num_docs=num_docs, user_name="seth", channels=["ABC"])
         assert(len(errors) == 0)
 
     cluster.servers[0].delete_bucket("data-bucket-1")
@@ -798,12 +798,12 @@ def test_multiple_dbs_unique_buckets_lose_tap(cluster, run_opts, conf, num_docs)
 
     # Check that db2 and db4 are still Online
     for db in ["db2", "db4"]:
-        errors = rest_scan(cluster.sync_gateways[0], db=db, online=True, num_docs=num_docs, user_name="adam", channels=["CBS"])
+        errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db=db, online=True, num_docs=num_docs, user_name="adam", channels=["CBS"])
         assert(len(errors) == 0)
 
     # Check that db1 and db3 go offline
     for db in ["db1", "db3"]:
-        errors = rest_scan(cluster.sync_gateways[0], db=db, online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
+        errors = rest_scan(run_opts.id, cluster.sync_gateways[0], db=db, online=False, num_docs=num_docs, user_name="seth", channels=["ABC"])
         assert(len(errors) == NUM_ENDPOINTS + (num_docs * 2))
         for error_tuple in errors:
             log.error("({},{})".format(error_tuple[0], error_tuple[1]))
