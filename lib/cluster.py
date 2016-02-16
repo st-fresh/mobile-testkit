@@ -79,28 +79,32 @@ class Cluster:
 
         # Detect if run mode has changed and reset accordlingly
         existing_buckets = self.servers[0].get_buckets()
-        clean = False
-        if run_opts.mode == RunMode.distributed_index and "index-bucket" not in existing_buckets:
-            log.info("Mode has changed. Cleaning!")
-            clean = True
-        if run_opts.mode == RunMode.channel_cache and "index-bucket" in existing_buckets:
-            log.info("Mode has changed. Cleaning!")
-            clean = True
+
+        # Parse config and grab bucket names
+        conf_path = os.path.abspath("conf/" + config)
+        bucket_names_from_config = self.get_bucket_names_from_conf(conf_path)
+
+        # Buckets may be shared for different functionality
+        bucket_name_set = list(set(bucket_names_from_config))
+
+        # Validate bucket names
+        self.validate_config_bucket_names(run_opts, bucket_name_set)
+
+        # Check if server should reset its buckets
+        reset = self.should_server_reset(run_opts, existing_buckets)
         
         # Stop sync_gateways
         log.info(">>> Stopping sync_gateway")
         status = run_ansible_playbook("stop-sync-gateway.yml", stop_on_fail=False)
         assert(status == 0)
 
-        if run_opts.mode == RunMode.distributed_index:
+        if reset:
             # Stop sync_gateways
             log.info(">>> Stopping sg_accel")
             status = run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
             assert(status == 0)
 
-        conf_path = os.path.abspath("conf/" + config)
-
-        if run_opts.reset or clean:
+        if reset:
             # Deleting sync_gateway artifacts
             log.info(">>> Deleting sync_gateway artifacts")
             status = run_ansible_playbook("delete-sync-gateway-artifacts.yml", stop_on_fail=False)
@@ -112,43 +116,13 @@ class Cluster:
                 status = run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
                 assert(status == 0)
 
-        if run_opts.reset or clean:
+        if reset:
             # Delete buckets
             log.info(">>> Deleting buckets on: {}".format(self.servers[0].ip))
             existing_buckets = self.servers[0].get_buckets()
             self.servers[0].delete_buckets(existing_buckets)
 
-        # Parse config and grab bucket names
-        bucket_names_from_config = []
-
-        with open(conf_path, "r") as config:
-            data = config.read()
-
-            # strip out templated variables {{ ... }}
-            data = re.sub("({{.*}})", "0", data)
-
-            # strip out sync functions `function ... }`
-            data = re.sub("(`function.*\n)(.*\n)+(.*}`)", "0", data)
-
-            # Find all bucket names in config's databases: {}
-            conf_obj = json.loads(data)
-
-            # Add CBGT buckets
-            if "cluster_config" in conf_obj.keys():
-                bucket_names_from_config.append(conf_obj["cluster_config"]["bucket"])
-
-            dbs = conf_obj["databases"]
-            for key, val in dbs.iteritems():
-                # Add data buckets
-                bucket_names_from_config.append(val["bucket"])
-                if "channel_index" in val:
-                    # index buckets
-                    bucket_names_from_config.append(val["channel_index"]["bucket"])
-
-        # Buckets may be shared for different functionality
-        bucket_name_set = list(set(bucket_names_from_config))
-
-        if run_opts.reset or clean:
+        if reset:
             log.info(">>> Creating buckets on: {}".format(self.servers[0].ip))
             log.info(">>> Creating buckets {}".format(bucket_name_set))
             self.servers[0].create_buckets(bucket_name_set)
@@ -185,15 +159,69 @@ class Cluster:
 
         return run_opts.mode
 
-    def validate_bucket_names(self, names, mode):
+    def get_bucket_names_from_conf(self, conf_path):
+
+        bucket_names = []
+
+        with open(conf_path, "r") as config:
+            data = config.read()
+
+            # strip out templated variables {{ ... }}
+            data = re.sub("({{.*}})", "0", data)
+
+            # strip out sync functions `function ... }`
+            data = re.sub("(`function.*\n)(.*\n)+(.*}`)", "0", data)
+
+            # Find all bucket names in config's databases: {}
+            conf_obj = json.loads(data)
+
+            # Add CBGT buckets
+            if "cluster_config" in conf_obj.keys():
+                bucket_names.append(conf_obj["cluster_config"]["bucket"])
+
+            dbs = conf_obj["databases"]
+            for key, val in dbs.iteritems():
+                # Add data buckets
+                bucket_names.append(val["bucket"])
+                if "channel_index" in val:
+                    # index buckets
+                    bucket_names.append(val["channel_index"]["bucket"])
+
+        return bucket_names
+
+    def validate_config_bucket_names(self, mode, config_bucket_names):
+
+        if ((mode == RunMode.channel_cache and len(config_bucket_names) > 1) or
+                (mode == RunMode.distributed_index and len(config_bucket_names) > 2)):
+            # Multiple buckets scenario
+            return
+
         if mode == RunMode.channel_cache:
-            log.info("Validating channel cache buckets")
-            assert len(names) == 1 and "data-bucket" in names
+            assert(len(config_bucket_names) == 1 and "data-bucket" in config_bucket_names)
         elif mode == RunMode.distributed_index:
-            log.info("Validating distributed index buckets")
-            assert len(names) == 2 and "data-bucket" in names and "index-bucket" in names
-        else:
-            raise ValueError("Unsupported configuration mode.")
+            assert(len(config_bucket_names) == 2 and "data-bucket" in config_bucket_names and "index-bucket" in config_bucket_names)
+
+    def should_server_reset(self, run_opts, existing_buckets):
+
+        reset = False
+
+        if run_opts.reset:
+            log.info("run_opts.reset == True. Cleaning!")
+            reset = True
+        elif len(existing_buckets) != 1 and run_opts.mode == RunMode.channel_cache:
+            log.info("Incorrect number of buckets for 'CC' mode. Reseting!")
+            reset = True
+        elif len(existing_buckets) != 2 and run_opts.mode == RunMode.distributed_index:
+            log.info("Incorrect number of buckets for 'DI' mode. Reseting!")
+            reset = True
+        elif run_opts.mode == RunMode.distributed_index and "index-bucket" not in existing_buckets:
+            log.info("Mode has changed. Reseting!")
+            reset = True
+        elif run_opts.mode == RunMode.channel_cache and "index-bucket" in existing_buckets:
+            log.info("Mode has changed. Reseting!")
+            reset = True
+
+        return reset
 
     def save_cbgt_diagnostics(self, test_id):
         

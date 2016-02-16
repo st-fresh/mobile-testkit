@@ -34,7 +34,7 @@ def cluster(request):
         # Fetch logs if a test fails
         if request.node.rep_call.failed:
 
-            log.error("\n!!!!!!!!!! TEST FAILURE !!!!!!!!!!")
+            log.error("!!!!!!!!!! TEST FAILURE !!!!!!!!!!")
             log.error(request.node.nodeid)
 
             # example nodeid: tests/test_single_user_multiple_channels.py::test_1
@@ -53,7 +53,7 @@ def cluster(request):
     if settings.CAPTURE_SYNC_GATEWAY_LOGS_ON_FAIL:
         request.addfinalizer(fetch_logs)
 
-    log.info("\n--------- TEST -----------")
+    log.info("--------- TEST -----------")
     log.info(request.node.nodeid)
 
     # Create cluster

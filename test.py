@@ -14,18 +14,6 @@ from lib.constants import RunMode
 log = logging.getLogger(lib.settings.LOGGER)
 
 
-class RunOptions:
-
-    def __init__(self, id, mode, reset_data):
-        self.id = id,
-        self.mode = mode
-        self.reset_data = reset_data
-
-    def validate(self):
-        if self.mode not in ["CC", "DI", "RS", "ALL"]:
-            raise ValueError("The only supported modes are 'CC', 'DI', 'RS', and 'ALL'")
-
-
 if __name__ == "__main__":
     usage = """
     usage: ./test.py
@@ -93,7 +81,10 @@ if __name__ == "__main__":
         log.info("Running individual test(s) matching the pattern {}".format(opts.test))
         count = 0
         while count < opts.repeat:
-            status = pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {}"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
+
+            status = pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {} and not RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
+            status = pytest.main('-s --junit-xml=results/{}-{}.xml --reset --mode={} -k "{} and {} and RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
+
             if opts.repeat > 1 and status != 0:
                 # Break loop in first failure if repeating
                 break
