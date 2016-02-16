@@ -114,7 +114,7 @@ def rest_scan(test_id, sync_gateway, db, online, num_docs, user_name, channels):
 
     # Create dummy user to hit endpoint if offline, user creation above will fail
     if not online:
-        user = User(target=sync_gateway, db=db, name=user_name, password="password", channels=channels)
+        user = User(target=sync_gateway, db=db, test_id=test_id, name=user_name, password="password", channels=channels)
 
     # PUT /{db}/{name}
     add_docs_errors = user.add_docs(num_docs=num_docs)
@@ -407,11 +407,12 @@ def test_online_to_offline_continous_changes_feed_controlled_close_sanity_mulitp
                 log.info("DB OFFLINE")
                 # make sure db_offline returns 200
                 assert(future.result() == 200)
-            if task_name.startswith("user"):
+            if task_name.startswith("{}-user_".format(run_opts.id)):
                 # Long poll will exit with 503, return docs in the exception
                 log.info("POLLING DONE")
                 try:
                     docs = future.result()
+                    log.error("DOCS: {}".format(docs))
                     feed_close_results.append(docs)
                 except Exception as e:
                     log.error("Continious feed close error: {}".format(e))
@@ -521,7 +522,7 @@ def test_online_to_offline_longpoll_changes_feed_controlled_close_sanity_mulitpl
                 log.info("DB OFFLINE")
                 # make sure db_offline returns 200
                 assert(future.result() == 200)
-            if task_name.startswith("user"):
+            if task_name.startswith("{}-user_".format(run_opts.id)):
                 # Long poll will exit with 503, return docs in the exception
                 log.info("POLLING DONE")
                 try:
@@ -777,7 +778,7 @@ def test_db_delayed_online(cluster, run_opts, conf, num_docs):
         ("bucket_online_offline/bucket_online_offline_multiple_dbs_unique_buckets_cc.json", 100),
         ("bucket_online_offline/bucket_online_offline_multiple_dbs_unique_buckets_di.json", 100)
     ],
-    ids=["CC-1", "DI-2"]
+    ids=["RESET-CC-1", "RESET-DI-2"]
 )
 def test_multiple_dbs_unique_buckets_lose_tap(cluster, run_opts, conf, num_docs):
 
