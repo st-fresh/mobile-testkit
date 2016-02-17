@@ -14,6 +14,19 @@ from lib.constants import RunMode
 log = logging.getLogger(lib.settings.LOGGER)
 
 
+# Register custom pytest pluggins
+plugins = [functional_tests.plugins]
+
+
+def run_tests(cmd):
+
+    # Print all tests collected by command
+    pytest.main("{} --collect-only".format(cmd), plugins)
+
+    # Run tests
+    status = pytest.main(cmd, plugins)
+    return status
+
 if __name__ == "__main__":
     usage = """
     usage: ./test.py
@@ -54,7 +67,7 @@ if __name__ == "__main__":
 
     print(opts)
 
-    plugins = [functional_tests.plugins]
+
 
     # Delete sg logs in /tmp
     # filelist = [f for f in os.listdir("/tmp") if f.endswith(".zip") or f.endswith("sglogs")]
@@ -82,10 +95,8 @@ if __name__ == "__main__":
         count = 0
         while count < opts.repeat:
 
-            pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {} and not RESET" --collect-only'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
-            status = pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {} and not RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
-            pytest.main('-s --junit-xml=results/{}-{}.xml --reset --mode={} -k "{} and {} and RESET" --collect-only'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
-            status = pytest.main('-s --junit-xml=results/{}-{}.xml --reset --mode={} -k "{} and {} and RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
+            status = run_tests('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {} and not RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode))
+            status = run_tests('-s --junit-xml=results/{}-{}.xml --reset --mode={} -k "{} and {} and RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode))
 
             if opts.repeat > 1 and status != 0:
                 # Break loop in first failure if repeating
@@ -96,39 +107,37 @@ if __name__ == "__main__":
     if opts.mode == RunMode.all_clean:
         log.info("RUNNING ALL tests with reset!")
         # Run all tests with data reset between each test
-        status = pytest.main('-s --junit-xml=results/di-no-reset.xml --reset  --mode="DI" -k "DI and not RESET"', plugins=plugins)
+        status = run_tests('-s --junit-xml=results/di-no-reset.xml --reset  --mode="DI" -k "DI and not RESET"')
         assert(status == 0)
-        status = pytest.main('-s --junit-xml=results/cc-no-reset.xml --reset --mode="CC" -k "CC and not RESET"', plugins=plugins)
+        status = run_tests('-s --junit-xml=results/cc-no-reset.xml --reset --mode="CC" -k "CC and not RESET"')
         assert(status == 0)
-        status = pytest.main('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"', plugins=plugins)
+        status = run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
         assert(status == 0)
-        status = pytest.main('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"', plugins=plugins)
+        status = run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
         assert(status == 0)
     else:
         # Individual filters
         if opts.mode == RunMode.distributed_index:
             log.info("Running DI tests")
-            status = pytest.main('-s --junit-xml=results/di-no-reset.xml --mode=DI -k "DI and not RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/di-no-reset.xml --mode=DI -k "DI and not RESET"')
             assert(status == 0)
         elif opts.mode == RunMode.channel_cache:
             log.info("Running CC tests")
-            pytest.main('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET" --collect-only', plugins=plugins)
-            status = pytest.main('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"')
             assert(status == 0)
         elif opts.mode == RunMode.reset:
             log.info("Running DI tests")
-            status = pytest.main('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
             assert(status == 0)
-            status = pytest.main('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
             assert(status == 0)
         else:
             log.info("RUNNING ALL tests!")
-            # Run all tests without reset except where declared in tag
-            status = pytest.main('-s --junit-xml=results/di-no-reset.xml --mode="DI" -k "DI and not RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/di-no-reset.xml --mode="DI" -k "DI and not RESET"')
             assert(status == 0)
-            status = pytest.main('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"')
             assert(status == 0)
-            status = pytest.main('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
             assert(status == 0)
-            status = pytest.main('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"', plugins=plugins)
+            status = run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
             assert(status == 0)
