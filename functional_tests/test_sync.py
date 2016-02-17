@@ -59,8 +59,8 @@ def test_issue_1524(cluster, run_opts, conf, num_docs):
                 access_doc_pusher.add_doc(
                         doc_id="access_doc",
                         content={
-                            "accessUser": "user_no_channels",
-                            "accessChannels": ["A"]
+                            "accessUser": "{}-user_no_channels".format(run_opts.id),
+                            "accessChannels": ["{}-A".format(run_opts.id)]
                         }
                 )
 

@@ -82,7 +82,9 @@ if __name__ == "__main__":
         count = 0
         while count < opts.repeat:
 
+            pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {} and not RESET" --collect-only'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
             status = pytest.main('-s --junit-xml=results/{}-{}.xml --mode={} -k "{} and {} and not RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
+            pytest.main('-s --junit-xml=results/{}-{}.xml --reset --mode={} -k "{} and {} and RESET" --collect-only'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
             status = pytest.main('-s --junit-xml=results/{}-{}.xml --reset --mode={} -k "{} and {} and RESET"'.format(opts.test, count, opts.mode, opts.test, opts.mode), plugins=plugins)
 
             if opts.repeat > 1 and status != 0:
@@ -109,7 +111,8 @@ if __name__ == "__main__":
             status = pytest.main('-s --junit-xml=results/di-no-reset.xml --mode=DI -k "DI and not RESET"', plugins=plugins)
             assert(status == 0)
         elif opts.mode == RunMode.channel_cache:
-            log.info("Running DI tests")
+            log.info("Running CC tests")
+            pytest.main('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET" --collect-only', plugins=plugins)
             status = pytest.main('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"', plugins=plugins)
             assert(status == 0)
         elif opts.mode == RunMode.reset:

@@ -1,7 +1,7 @@
 ---
 - hosts: sync_gateways
   become: yes
-  any_errors_fatal: trueß
+  any_errors_fatal: true
   tasks:
   - name: Fetch sync_gateway logs
     # Do not validate checksum as this is just a passive grab of the logs. Since they are continuously being appended to, the checksum may fail
