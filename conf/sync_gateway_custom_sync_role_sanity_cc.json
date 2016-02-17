@@ -23,7 +23,7 @@
             "sync":
             `function(doc, oldDoc){
                 if (doc.content && doc.content.grant_access == "true") {
-                    role("seth", "role:tv_stations");
+                    role(doc.content.user, doc.content.role);
                 }
                 channel(doc.channels);
             }`
