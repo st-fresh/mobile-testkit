@@ -37,7 +37,7 @@
             "sync":
             `function(doc, oldDoc){
                 if (doc.content && doc.content.grant_access == "true") {
-                    access("seth", "ABC")
+                    access(doc.content.user, doc.content.access_channels)
                 }
                 channel(doc.channels);
             }`

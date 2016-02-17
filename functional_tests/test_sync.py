@@ -114,7 +114,13 @@ def test_sync_access_sanity(cluster, run_opts, conf):
 
     # Create access doc pusher and grant access Seth to ABC channel
     access_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="access_doc_pusher", password="password", channels=["access"])
-    access_doc_pusher.add_doc(doc_id="access_doc", content={"grant_access": "true"})
+    access_doc_pusher.add_doc(
+        doc_id="access_doc",
+        content={
+            "user": "{}-seth".format(run_opts.id, seth.name),
+            "access_channels": "{}-ABC".format(run_opts.id),
+            "grant_access": "true"}
+    )
 
     # Allow docs to backfill
     time.sleep(5)
@@ -122,7 +128,14 @@ def test_sync_access_sanity(cluster, run_opts, conf):
     verify_changes(seth, expected_num_docs=num_docs, expected_num_revisions=0, expected_docs=abc_doc_pusher.cache)
 
     # Remove seth from ABC
-    access_doc_pusher.update_doc(doc_id="access_doc", content={"grant_access": "false"})
+    access_doc_pusher.update_doc(
+        doc_id="{}-access_doc".format(run_opts.id),
+        content={
+            "user": "{}-seth".format(run_opts.id, seth.name),
+            "access_channels": "".format(run_opts.id),
+            "grant_access": "false"
+        }
+    )
 
     # Push more ABC docs
     abc_doc_pusher.add_docs(num_docs)
