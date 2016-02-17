@@ -102,42 +102,32 @@ if __name__ == "__main__":
                 # Break loop in first failure if repeating
                 break
             count += 1
-        sys.exit(0)
 
-    if opts.mode == RunMode.all_clean:
+    elif opts.mode == RunMode.all_clean:
+
         log.info("RUNNING ALL tests with reset!")
         # Run all tests with data reset between each test
-        status = run_tests('-s --junit-xml=results/di-no-reset.xml --reset  --mode="DI" -k "DI and not RESET"')
-        assert(status == 0)
-        status = run_tests('-s --junit-xml=results/cc-no-reset.xml --reset --mode="CC" -k "CC and not RESET"')
-        assert(status == 0)
-        status = run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
-        assert(status == 0)
-        status = run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
-        assert(status == 0)
+        run_tests('-s --junit-xml=results/di-no-reset.xml --reset  --mode="DI" -k "DI and not RESET"')
+        run_tests('-s --junit-xml=results/cc-no-reset.xml --reset --mode="CC" -k "CC and not RESET"')
+        run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
+        run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
+
     else:
+        
         # Individual filters
         if opts.mode == RunMode.distributed_index:
             log.info("Running DI tests")
-            status = run_tests('-s --junit-xml=results/di-no-reset.xml --mode=DI -k "DI and not RESET"')
-            assert(status == 0)
+            run_tests('-s --junit-xml=results/di-no-reset.xml --mode=DI -k "DI and not RESET"')
         elif opts.mode == RunMode.channel_cache:
             log.info("Running CC tests")
-            status = run_tests('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"')
-            assert(status == 0)
+            run_tests('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"')
         elif opts.mode == RunMode.reset:
             log.info("Running DI tests")
-            status = run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
-            assert(status == 0)
-            status = run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
-            assert(status == 0)
+            run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
+            run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
         else:
             log.info("RUNNING ALL tests!")
-            status = run_tests('-s --junit-xml=results/di-no-reset.xml --mode="DI" -k "DI and not RESET"')
-            assert(status == 0)
-            status = run_tests('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"')
-            assert(status == 0)
-            status = run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
-            assert(status == 0)
-            status = run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
-            assert(status == 0)
+            run_tests('-s --junit-xml=results/di-no-reset.xml --mode="DI" -k "DI and not RESET"')
+            run_tests('-s --junit-xml=results/cc-no-reset.xml --mode="CC" -k "CC and not RESET"')
+            run_tests('-s --junit-xml=results/di-reset.xml --reset --mode="DI" -k "DI and RESET"')
+            run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
