@@ -17,8 +17,8 @@ log = logging.getLogger(lib.settings.LOGGER)
 from fixtures import cluster
 from fixtures import run_opts
 
-uncompressed_size = 6344956
-part_encoded_size = 2255086
+uncompressed_size = 6360556
+part_encoded_size = 2259180
 whole_response_compressed_size = 76476
 
 delta = 1000
