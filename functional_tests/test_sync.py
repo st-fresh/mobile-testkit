@@ -304,7 +304,7 @@ def test_sync_role_sanity(cluster, run_opts, conf):
     ],
     ids=["DI-1", "CC-2"]
 )
-def test_sync_sanity(cluster, run_opts, conf):
+def test_sync_sanity_one(cluster, run_opts, conf):
 
     log.info("Using conf: {}".format(conf))
 
@@ -319,7 +319,14 @@ def test_sync_sanity(cluster, run_opts, conf):
     access_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="access_doc_pusher", password="password")
 
     # Grant dj_0 access to KDWB channel via sync before docs are pushed
-    access_doc_pusher.add_doc("access_doc", content="access")
+    access_doc_pusher.add_doc(
+        "access_doc",
+        content={
+            "access": "true",
+            "user": "{}-dj_0".format(run_opts.id),
+            "access_channels": "{}-KDWB".format(run_opts.id)
+        }
+    )
 
     kdwb_caches = []
     for radio_station in radio_stations:
