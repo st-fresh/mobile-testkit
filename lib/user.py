@@ -84,6 +84,7 @@ class User:
 
         doc_body = dict()
         doc_body["updates"] = 0
+        doc_body["test_id"] = self.id
 
         if self.channels:
             doc_body["channels"] = self.channels
@@ -134,9 +135,9 @@ class User:
             doc_with_test_id = "{}-{}".format(self.id, doc_id)
 
             if self.channels:
-                doc = {"_id": doc_with_test_id, "channels": self.channels, "updates": 0}
+                doc = {"_id": doc_with_test_id, "channels": self.channels, "updates": 0, "test_id": self.id}
             else:
-                doc = {"_id": doc_with_test_id, "updates": 0}
+                doc = {"_id": doc_with_test_id, "updates": 0, "test_id": self.id}
             doc_list.append(doc)
 
         docs = dict()
@@ -373,7 +374,9 @@ class User:
                 params["include_docs"] = False
 
         if channels is not None:
-            params["channels"] = ",".join(channels)
+            # Prepend test id
+            channels_with_id = ["{}-{}".format(self.id, channel) for channel in channels]
+            params["channels"] = ",".join(channels_with_id)
 
         if filter is not None:
             if filter != "sync_gateway/bychannel":

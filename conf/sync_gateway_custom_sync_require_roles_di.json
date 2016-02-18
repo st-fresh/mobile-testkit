@@ -36,10 +36,10 @@
             },
             "sync":
             `function(doc, oldDoc){
-                if (doc.channels.indexOf("KMOW") > -1 || doc.channels.indexOf("HWOD") > -1 || doc.channels.indexOf("KDWB") > -1) {
-                    requireRole("radio_stations");
-                } else if (doc.channels.indexOf("ABC") > -1 || doc.channels.indexOf("CBS") > -1 || doc.channels.indexOf("NBC") > -1) {
-                    requireRole("tv_stations");
+                if (doc.channels.indexOf(doc.test_id + "-KMOW") > -1 || doc.channels.indexOf(doc.test_id + "-HWOD") > -1 || doc.channels.indexOf(doc.test_id + "-KDWB") > -1) {
+                    requireRole(doc.test_id + "-radio_stations");
+                } else if (doc.channels.indexOf(doc.test_id + "-ABC") > -1 || doc.channels.indexOf(doc.test_id + "-CBS") > -1 || doc.channels.indexOf(doc.test_id + "-NBC") > -1) {
+                    requireRole(doc.test_id + "-tv_stations");
                 } else {
                     throw({forbidden: "You have to have access to radio_stations or tv_stations!"})
                 }

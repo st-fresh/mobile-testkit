@@ -324,8 +324,10 @@ def test_sync_sanity(cluster, run_opts, conf):
     kdwb_caches = []
     for radio_station in radio_stations:
         doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="{}_doc_pusher".format(radio_station), password="password", channels=[radio_station])
-        doc_pusher.add_docs(number_of_docs_per_pusher, bulk=True,)
-        if doc_pusher.name == "KDWB_doc_pusher":
+        doc_pusher.add_docs(number_of_docs_per_pusher, bulk=True)
+        log.info("NAME: {}".format(doc_pusher.name))
+        if doc_pusher.name == "{}-KDWB_doc_pusher".format(run_opts.id):
+            log.info("{} Appending to cache".format(doc_pusher.name))
             kdwb_caches.append(doc_pusher.cache)
 
     # Build global doc_id, rev dict for all docs from all KDWB caches
@@ -367,13 +369,21 @@ def test_sync_sanity_backfill(cluster, run_opts, conf):
     for radio_station in radio_stations:
         doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="{}_doc_pusher".format(radio_station), password="password", channels=[radio_station])
         doc_pusher.add_docs(number_of_docs_per_pusher, bulk=True)
-        if doc_pusher.name == "KDWB_doc_pusher":
+        log.info("NAME: {}".format(doc_pusher.name))
+        if doc_pusher.name == "{}-KDWB_doc_pusher".format(run_opts.id):
             kdwb_caches.append(doc_pusher.cache)
 
     access_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="access_doc_pusher", password="password")
 
     # Grant dj_0 access to KDWB channel via sync after docs are pushed
-    access_doc_pusher.add_doc("access_doc", content="access")
+    access_doc_pusher.add_doc(
+        "access_doc",
+        content={
+            "access": "true",
+            "user": "{}-dj_0".format(run_opts.id),
+            "access_channels": "{}-KDWB".format(run_opts.id)
+        }
+    )
 
     # Build global doc_id, rev dict for all docs from all KDWB caches
     kdwb_docs = {k: v for cache in kdwb_caches for k, v in cache.items()}

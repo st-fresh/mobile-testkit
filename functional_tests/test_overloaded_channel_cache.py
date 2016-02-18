@@ -16,12 +16,11 @@ log = logging.getLogger(lib.settings.LOGGER)
 
 
 @pytest.mark.parametrize("conf, num_docs, user_channels, filter, limit", [
-        ("sync_gateway_channel_cache_cc.json", 5000, "*", True, 50),
-        ("sync_gateway_channel_cache_cc.json", 1000, "*", True, 50),
-        ("sync_gateway_channel_cache_cc.json", 5000, "ABC", False, 50),
-        ("sync_gateway_channel_cache_cc.json", 5000, "ABC", True, 50)
+        ("sync_gateway_channel_cache_cc.json", 5000, ["ABC"], True, 50),
+        ("sync_gateway_channel_cache_cc.json", 1000, ["ABC"], True, 50),
+        ("sync_gateway_channel_cache_cc.json", 5000, ["ABC"], False, 50),
     ],
-    ids=["CC-1", "CC-2", "CC-3", "CC-4"]
+    ids=["CC-1", "CC-2", "CC-3"]
 )
 def test_overloaded_channel_cache(cluster, run_opts, conf, num_docs, user_channels, filter, limit):
 
@@ -37,11 +36,14 @@ def test_overloaded_channel_cache(cluster, run_opts, conf, num_docs, user_channe
 
     admin = Admin(target_sg, run_opts.id)
 
-    users = admin.register_bulk_users(target_sg, "db", "user", 1000, "password", [user_channels])
+    users = admin.register_bulk_users(target_sg, "db", "user", 1000, "password", user_channels)
     assert len(users) == 1000
 
     doc_pusher = admin.register_user(target_sg, "db", "abc_doc_pusher", "password", ["ABC"])
     doc_pusher.add_docs(num_docs, bulk=True)
+
+    doc_pusher_nbc = admin.register_user(target_sg, "db", "nbc_doc_pusher", "password", ["NBC"])
+    doc_pusher_nbc.add_docs(num_docs, bulk=True)
 
     # Give a few seconds to let changes register
     time.sleep(2)
@@ -79,7 +81,7 @@ def test_overloaded_channel_cache(cluster, run_opts, conf, num_docs, user_channe
             end = time.time()
             time_for_users_to_get_all_changes = end - start
             log.info("Time for users to get all changes: {}".format(time_for_users_to_get_all_changes))
-            assert time_for_users_to_get_all_changes < 60
+            assert time_for_users_to_get_all_changes < 120
 
         # Sanity check that a subset of users have _changes feed intact
         for i in range(10):
@@ -90,12 +92,7 @@ def test_overloaded_channel_cache(cluster, run_opts, conf, num_docs, user_channe
         resp.raise_for_status()
         resp_obj = resp.json()
 
-        if user_channels == "*" and num_docs == 5000:
-            # "*" channel includes _user docs so the verify_changes will result in 10 view queries
-            assert(resp_obj["syncGateway_changeCache"]["view_queries"] == 10)
-        else:
-            # If number of view queries == 0 the key will not exist in the expvars
-            assert("view_queries" not in resp_obj["syncGateway_changeCache"])
+        assert("view_queries" not in resp_obj["syncGateway_changeCache"])
 
     # Verify all sync_gateways are running
     errors = cluster.verify_alive(mode)

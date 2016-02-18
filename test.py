@@ -101,6 +101,7 @@ if __name__ == "__main__":
             if opts.repeat > 1 and status != 0:
                 # Break loop in first failure if repeating
                 break
+
             count += 1
 
     elif opts.mode == RunMode.all_clean:
@@ -113,7 +114,7 @@ if __name__ == "__main__":
         run_tests('-s --junit-xml=results/cc-reset.xml --reset --mode="CC" -k "CC and RESET"')
 
     else:
-        
+
         # Individual filters
         if opts.mode == RunMode.distributed_index:
             log.info("Running DI tests")
