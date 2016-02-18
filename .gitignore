@@ -28,6 +28,7 @@ provisioning_config*
 !utilities/provisioning_config_parser.py
 
 results.xml
+results/*
 provision/ansible/playbooks/ansible.cfg
 test-framework.log
 
