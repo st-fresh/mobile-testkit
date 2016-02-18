@@ -21,7 +21,7 @@ uncompressed_size = 6360556
 part_encoded_size = 2259180
 whole_response_compressed_size = 76476
 
-delta = 1000
+delta = 1500
 
 def issue_request(target, user_agent, test_id, accept_encoding, x_accept_part_encoding, payload):
 
