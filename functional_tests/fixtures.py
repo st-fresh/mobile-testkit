@@ -16,7 +16,6 @@ import lib.settings
 
 log = logging.getLogger(lib.settings.LOGGER)
 
-
 class TestRunOptions(object):
     def __init__(self, id, reset, mode):
         self.id = id
@@ -26,6 +25,9 @@ class TestRunOptions(object):
     def validate(self):
         assert(self.mode in ["CC", "DI"])
 
+# Create cluster to save object state between tests
+# One use is that we can retain the sync_gateway configuration, etc
+c = Cluster()
 @pytest.fixture
 def cluster(request):
 
@@ -56,8 +58,6 @@ def cluster(request):
     log.info("--------- TEST -----------")
     log.info(request.node.nodeid)
 
-    # Create cluster
-    c = Cluster()
     log.info("CLUSTER")
     for server in c.servers:
         log.info(server)

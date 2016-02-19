@@ -48,6 +48,8 @@ class Cluster:
         self.servers = [Server(cb) for cb in cbs]
         self.load_generators = lds
 
+        self.current_sg_config_name = ""
+
     def _hosts_for_tag(self, tag):
         hostfile = "provisioning_config"
 
@@ -92,29 +94,42 @@ class Cluster:
 
         # Check if server should reset its buckets
         reset = self.should_server_reset(run_opts, existing_buckets)
-        
-        # Stop sync_gateways
-        log.info(">>> Stopping sync_gateway")
-        status = run_ansible_playbook("stop-sync-gateway.yml", stop_on_fail=False)
-        assert(status == 0)
 
-        if reset:
+        # Check if the passed config already deployed
+        log.info("Current config: {}".format(self.current_sg_config_name))
+        log.info("New config: {}".format(config))
+        should_deploy_config = True
+
+        # If the passed config is the same as the deployed config and a reset is not required, skip deploying the new config
+        if self.current_sg_config_name == config and not reset:
+            should_deploy_config = False
+
+        self.current_sg_config_name = config
+        log.info("Deploying config?: {}".format(should_deploy_config))
+
+        if should_deploy_config:
             # Stop sync_gateways
+            log.info(">>> Stopping sync_gateway")
+            status = run_ansible_playbook("stop-sync-gateway.yml", stop_on_fail=False)
+            assert(status == 0)
+
+        if should_deploy_config:
+            # Stop sg_accels
             log.info(">>> Stopping sg_accel")
             status = run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
             assert(status == 0)
 
-        if reset:
+        if should_deploy_config:
             # Deleting sync_gateway artifacts
             log.info(">>> Deleting sync_gateway artifacts")
             status = run_ansible_playbook("delete-sync-gateway-artifacts.yml", stop_on_fail=False)
             assert(status == 0)
 
-            if run_opts.mode == RunMode.distributed_index:
-                # Deleting sg_accel artifacts
-                log.info(">>> Deleting sg_accel artifacts")
-                status = run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
-                assert(status == 0)
+        if run_opts.mode == RunMode.distributed_index and should_deploy_config:
+            # Deleting sg_accel artifacts
+            log.info(">>> Deleting sg_accel artifacts")
+            status = run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
+            assert(status == 0)
 
         if reset:
             # Delete buckets
@@ -127,19 +142,19 @@ class Cluster:
             log.info(">>> Creating buckets {}".format(bucket_name_set))
             self.servers[0].create_buckets(bucket_name_set)
 
-        log.info(">>> Starting sync_gateway with configuration: {}".format(conf_path))
-
-        # Start sync-gateway
-        status = run_ansible_playbook(
-            "start-sync-gateway.yml",
-            extra_vars="sync_gateway_config_filepath={0}".format(conf_path),
-            stop_on_fail=False
-        )
-        assert(status == 0)
+        if should_deploy_config:
+            # Start sync-gateway
+            log.info(">>> Starting sync_gateway with configuration: {}".format(conf_path))
+            status = run_ansible_playbook(
+                "start-sync-gateway.yml",
+                extra_vars="sync_gateway_config_filepath={0}".format(conf_path),
+                stop_on_fail=False
+            )
+            assert(status == 0)
 
         # HACK - only enable sg_accel for distributed index tests
         # revise this with https://github.com/couchbaselabs/sync-gateway-testcluster/issues/222
-        if run_opts.mode == RunMode.distributed_index:
+        if run_opts.mode == RunMode.distributed_index and should_deploy_config:
             # Start sg-accel
             status = run_ansible_playbook(
                 "start-sg-accel.yml",
