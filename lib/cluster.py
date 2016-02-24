@@ -17,6 +17,8 @@ from provision.ansible_runner import run_ansible_playbook
 
 import logging
 log = logging.getLogger(settings.LOGGER)
+import time
+import requests
 
 
 class Cluster:
@@ -255,6 +257,30 @@ class Cluster:
                 
     
         return True
+
+    def rebalance_in(self, nodes_to_be_added):
+        user = 'Administrator'
+        password = 'password'
+
+
+        for node_ip in nodes_to_be_added:
+            payload = {"hostname":node_ip,"user":user,"password":password}
+            r = requests.post('http://{}:8091/controller/addNode'.format(self.servers[0].ip),
+                              data=payload,
+                              auth=(user, password))
+
+            r.raise_for_status()
+            cluster_info = {"ejectedNodes":"","knownNodes":"ns_1@172.23.105.163,ns_1@172.23.107.47,ns_1@172.23.105.30"}
+
+            r = requests.post('http://172.23.107.47:8091/controller/rebalance',
+                              data = cluster_info,
+                              auth=('Administrator', 'password'))
+            print r.text
+
+        for i in range(10000):
+            r = requests.get("http://{}:8091/pools/default/rebalanceProgress".format(self.servers[0].ip),auth=('Administrator', 'password'))
+            print r.json()
+            time.sleep(0.1)
 
     def verify_alive(self, mode):
         errors = []
