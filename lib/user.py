@@ -70,7 +70,7 @@ class User:
         resp.raise_for_status()
         return resp.json()
 
-    # PUT /{db}/{doc-id}
+    # DELETE /{db}/{doc-id}
     def delete_doc(self, doc_id):
 
         # fetch latest revision of doc

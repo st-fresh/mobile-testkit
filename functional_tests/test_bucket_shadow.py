@@ -32,6 +32,8 @@ Shadow: Pushing "doc1", rev "9-ebbae742633c5059d80a062db256e1cb" [deletion]
 6) Edit document in shadow
 """
 
+    
+ 
 def test_bucket_shadow(cluster):
 
     """
@@ -70,24 +72,8 @@ def test_bucket_shadow(cluster):
     # Get a connection to the bucket
     bucket = cluster.servers[0].get_bucket_connection(source_bucket_name)
 
-    # Wait til the docs appears in the source bucket
-    doc  = None
-    maxTries = 5
-    i = 0
-    while True:
-        i += 1
-        print("trying to get doc: {}".format(doc_id))
-        doc = bucket.get(doc_id, quiet=True)
-        print("doc.success: {}".format(doc.success))
-        if doc.success:
-            break
-        else:
-            if i > maxTries:
-                # too many tries, give up
-                raise Exception("Doc {} never made it to source bucket.  Aborting".format(doc_id))
-            time.sleep(i)
-            continue
-        
+    # Get the doc from the source bucket, possibly retrying if needed
+    doc = get_doc_from_source_bucket_retry(doc_id, bucket)
     print("Doc {} appeared in source bucket".format(doc))
     
     # Take source bucket offline by deleting it
@@ -99,9 +85,18 @@ def test_bucket_shadow(cluster):
     # 4a) Delete doc, this will generate the following log message in the SG log
     alice.delete_doc(doc_id)
     
-    # 5) Bring shadow back online
+    # 5) Bring shadow back online -- FAILS DUE TO RAM ISSUES
+    cluster.servers[0].create_buckets([source_bucket_name])
+
+    # 5b) Restart SG
+    cluster.sync_gateways[0].restart(config)
+    
+    # Get the doc from the source bucket, possibly retrying if needed
+    doc = get_doc_from_source_bucket_retry(doc_id, bucket)
+    print("Doc {} re-appeared in source bucket".format(doc))
 
     # 6) Edit document in shadow
+    
     
     #doc = {}
     #doc_id = "{}".format(time.time())
@@ -120,3 +115,26 @@ def test_bucket_shadow(cluster):
 
     
 
+def get_doc_from_source_bucket_retry(doc_id, bucket):
+    """
+    Get a document from the couchbase source bucket
+    Will retry until it appears, or give up and raise an exception
+    """
+    # Wait til the docs appears in the source bucket
+    doc  = None
+    maxTries = 5
+    i = 0
+    while True:
+        i += 1
+        print("trying to get doc: {}".format(doc_id))
+        doc = bucket.get(doc_id, quiet=True)
+        print("doc.success: {}".format(doc.success))
+        if doc.success:
+            break
+        else:
+            if i > maxTries:
+                # too many tries, give up
+                raise Exception("Doc {} never made it to source bucket.  Aborting".format(doc_id))
+            time.sleep(i)
+            continue
+    return doc 
