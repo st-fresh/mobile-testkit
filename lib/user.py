@@ -12,6 +12,7 @@ from requests.exceptions import HTTPError
 from requests import Session, exceptions
 from collections import defaultdict
 
+from lib.debug import *
 from lib import settings
 import logging
 log = logging.getLogger(settings.LOGGER)
@@ -62,11 +63,29 @@ class User:
 
     # GET /{db}/_all_docs
     def get_all_docs(self):
-        resp = requests.get("{0}/{1}/_all_docs".format(self.target.url, self.db), headers=self._headers)
+        resp = requests.get("{0}/{1}/_all_docs".format(
+            self.target.url,
+            self.db,
+        ), headers=self._headers)
         log.debug("GET {}".format(resp.url))
         resp.raise_for_status()
         return resp.json()
 
+    # DELETE /{db}/{doc-id}
+    def delete_doc(self, doc_id):
+
+        # fetch latest revision of doc
+        doc2del = self.get_doc(doc_id)
+        
+        # delete that revision
+        resp = requests.delete("{0}/{1}/{2}?rev={3}".format(
+            self.target.url,
+            self.db,
+            doc_id,
+            doc2del["_rev"],
+        ), headers=self._headers)
+        resp.raise_for_status()
+    
     # PUT /{db}/{doc}
     # PUT /{db}/{local-doc-id}
     def add_doc(self, doc_id=None, content=None, retries=True):
@@ -198,6 +217,13 @@ class User:
                         errors.append((e.response.url, e.response.status_code))
 
         return errors
+
+    def add_design_doc(self, doc_id, content):
+        data = json.dumps(content)
+        r = requests.put("{0}/{1}/_design/{2}".format(self.target.url, self.db, doc_id), headers=self._headers, data=data)
+        log_request(r)
+        log_response(r)
+        r.raise_for_status()
 
     # GET /{db}/{doc}
     # PUT /{db}/{doc}
