@@ -6,24 +6,54 @@ This repository contains:
     * Performance Tests
 * Functional Test Suite (python)
 
-## Setup Controller
+## Setup Controller on OSX
 
 The "controller" is the machine that runs ansible, which is typically:
 
 * Your developer workstation
 * A virtual machine / docker container
 
-The instructions below are docker specific, but if you look in `docker/controller/Dockerfile` it should give you an idea of the required dependencies if you want to make this work directly on your workstation.
+The instructions below are for setting up directly on OSX.  If you prefer to run this under Docker, see the [Running under Docker](https://github.com/couchbaselabs/sync-gateway-testcluster/wiki/Running-under-Docker) wiki page.
 
-### Start a Docker container for the Ansible Controller
+### Install dependencies
 
-First you will need to [install docker](https://docs.docker.com/mac/step_one/).
+**Install Python via brew**
 
-```shell
-$ docker run -ti tleyden5iwx/sync-gateway-tests /bin/bash
+If you are on OSX El Capitan, you must install docker via brew rather than using the system python due to [Pip issue 3165](https://github.com/pypa/pip/issues/3165).
+
+```
+$ brew install python
 ```
 
-The rest of the commands should be run **inside** the docker container created in the previous step.
+After you install it, you should see that the python installed via brew is the default python:
+
+```
+$ which python
+/usr/local/bin/python
+$ python --version
+Python 2.7.10
+```
+
+**Install libcouchbase**
+
+```
+$ brew install libcouchbase 
+```
+
+**Install Pip dependencies**
+
+```
+$ pip install troposphere && \
+  pip install awscli && \
+  pip install boto && \
+  pip install ansible && \
+  pip install pytest && \
+  pip install futures && \
+  pip install requests && \
+  pip install couchbase
+```
+
+NOTE: This repo now only supports ansible 2.0+, which will be installed by default if you are on a fresh system.  To upgrade an existing system from ansible 1.x, run `pip uninstall ansible && pip install ansible`.  
 
 ### Clone Repo
 
@@ -82,13 +112,15 @@ $ python provision/create_and_instantiate_cluster.py \
     --stackname="YourCloudFormationStack" \
     --num-servers=1 \
     --server-type="m3.large" \
-    --num-sync-gateways=1 \
+    --num-sync-gateways=2 \
     --sync-gateway-type="m3.medium" \
     --num-gatlings=1 \
     --gatling-type="m3.medium" \
     --num-lbs=0 \
     --lb-type="m3.medium" 
 ```
+
+NOTE: currently need at least 2 sync gateways (1 sync gw and 1 sg_accel)
 
 The AWS virtual machines will be accessible via the `AWS_KEY` you specified above.
 
@@ -106,11 +138,11 @@ $ python provision/generate_ansible_inventory_from_aws.py \
      --targetfile=provisioning_config
 ```
 
-## Configure non-Index Writers (optional)
+## Configure sync gateway index readers vs index writers
 
-By default, all Sync Gateways will be configured as index writers.  However, if you need to set any Sync Gateways as non-Index Writers, then modify the `provisioning_config` file by hand to remove them from the `sync_gateway_index_writers` ansible group.
+Modify `provisioning_config` to remove at least one node from the `[sync_gateway_index_writers]` list
 
-**Virutal Machines**
+**Virtual Machines**
 
 Create and edit your provisioning configuration
 ```
@@ -153,8 +185,8 @@ Example building from source:
 
 ```
 $ python provision/provision_cluster.py \
-    --server-version=3.1.1 \
-    --sync-gateway-branch=feature/distributed_index_bulk_set
+    --server-version=4.1.0 \
+    --sync-gateway-branch=master
     --install-deps (first time only, this will install prerequisites to build / debug)
 ```
 
@@ -234,6 +266,11 @@ pip install futures
 pip install requests
 ```
 
+**Add current directory to $PYTHONPATH**
+
+```
+$ export PYTHONPATH=$PYTHONPATH:.
+```
 
 **Run all**
 ```
@@ -245,8 +282,106 @@ $ py.test -s "functional_tests/test_db_online_offline.py"
 ```
 **Running an individual test**
 ```
+$ py.test -s "functional_tests/functional_tests/test_bucket_shadow.py::test_bucket_shadow_multiple_sync_gateways"
+```
+
+**Running an individual parameterized test**
+```
 $ py.test -s "functional_tests/test_db_online_offline.py::test_online_default_rest["CC-1"]"
 ```
+
+## Running android_listener_tests
+
+These tests live in the functional_tests/android_listener_test/ directory
+
+Make sure you have the Android sdk installed and the 'monkeyrunner' program is in your path. You will need this to bootstrap apk installation on your emulators (ex. Users/user/Library/Android/sdk/tools/monkeyrunner). 
+
+Currently, the scenarios are targeting stock emulators with the emulator names defined in the test cases. For these, you should be using HAXM emulators.
+ 
+Follow the instructions here to install (https://software.intel.com/en-us/android/articles/installation-instructions-for-intel-hardware-accelerated-execution-manager-mac-os-x) 
+
+Ensure the RAM allocated to your combined running emulators is less than the total allocated to HAXM. You can configure the RAM for your emulator images in the Android Virtual Device Manager and in HAXM by reinstalling via the .dmg in the android sdk folder.
+ 
+To run the tests make sure you have lauched the correct number of emulators. You can launch them using the following command. 
+```
+emulator -scale 0.25 @Nexus_5_API_23_x86 &
+emulator -scale 0.25 @Nexus_5_API_23_x86 &
+emulator -scale 0.25 @Nexus_5_API_23_x86 &
+emulator -scale 0.25 @Nexus_5_API_23_x86 &
+emulator -scale 0.25 @Nexus_5_API_23_x86 &
+```
+Verify that the names listed below match the device definitions for the test you are trying to run
+```
+adb devices -l
+```
+```
+List of devices attached
+emulator-5562          device product:sdk_google_phone_x86 model:Android_SDK_built_for_x86 device:generic_x86
+emulator-5560          device product:sdk_google_phone_x86 model:Android_SDK_built_for_x86 device:generic_x86
+emulator-5558          device product:sdk_google_phone_x86 model:Android_SDK_built_for_x86 device:generic_x86
+emulator-5556          device product:sdk_google_phone_x86 model:Android_SDK_built_for_x86 device:generic_x86
+emulator-5554          device product:sdk_google_phone_x86 model:Android_SDK_built_for_x86 device:generic_x86
+```
+
+Most of the port forwarding will be set up via instantiation of the Listener. However, you do need to complete some additional steps.
+
+
+### Port forwarding (setup once)
+
+Add the following lines to the file `/etc/sysctl.conf`
+```
+net.inet.ip.forwarding=1
+net.inet6.ip6.forwarding=1
+```
+
+Specifying the 'local_port' when instantiating a Listener will forward the port on localhost only.
+ 
+ We need to bind the port on the `en0` interface to be reachable on the Wi-Fi. On Mac, this can be done with `pfctl`. Create a new anchor file under `/etc/pf.anchors/com.p2p`:
+
+```
+rdr pass on lo0 inet proto tcp from any to any port 10000 -> 127.0.0.1 port 10000
+rdr pass on en0 inet proto tcp from any to any port 10000 -> 127.0.0.1 port 10000
+
+rdr pass on lo0 inet proto tcp from any to any port 11000 -> 127.0.0.1 port 11000
+rdr pass on en0 inet proto tcp from any to any port 11000 -> 127.0.0.1 port 11000
+
+...
+```
+
+Parse and test your anchor file to make sure there a no errors:
+
+```
+sudo pfctl -vnf /etc/pf.anchors/com.p2p
+```
+
+The file at `/etc/pf.conf` is the main configuration file that `pf` loads at boot. Make sure to add both lines below to `/etc/pf.conf`:
+
+```
+scrub-anchor "com.apple/*"
+nat-anchor "com.apple/*"
+rdr-anchor "com.apple/*"
+rdr-anchor "com.p2p"      # Port forwading for p2p replications 
+dummynet-anchor "com.apple/*"
+anchor "com.apple/*"
+load anchor "com.apple" from "/etc/pf.anchors/com.apple"
+load anchor "com.p2p" from "/etc/pf.anchors/com.p2p"     # Port forwarding for p2p replications
+```
+
+The `lo0` are for local requests, and the `en0` entries are for external requests (coming from an actual device or another emulator targeting your host).
+
+Next, load and enable `pf` by running the following:
+
+```
+$ sudo pfctl -ef /etc/pf.conf
+```
+
+Now, all the databases are reachable on the internal network via host:forwarded_port (ex. http://192.168.0.21:10000/db), where 192.168.0.21 is your host computer's ip and 10000 is the 'local_port' passed when instantiating the Listener.
+
+To run the test
+```
+$ py.test -s "functional_tests/android_listener_tests/test_listener_rest.py"
+```
+
 
 ## Monitoring the cluster
 Make sure you have installed expvarmon 
