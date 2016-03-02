@@ -1,17 +1,30 @@
 *** Settings ***
 
-Library         OperatingSystem
+Library         Process
 Library         AppiumLibrary
-Library         ../../utilities/android.py
+Library         DebugLibrary
+Library         libraries/SyncGateway.py
 
-Test Setup      Launch Application
-Test Teardown   Close Application
+Test Setup      Setup
+Test Teardown   Teardown
+
+*** Variables ***
+${RESOURCES}                resources
+${SYNC_GATEWAY}             ${RESOURCES}/sync_gateway/couchbase-sync-gateway/bin/sync_gateway
+${SYNC_GATEWAY_CONFIGS}     ${RESOURCES}/sync_gateway_configurations
+${SYNC_GATEWAY_VERSION}     1.2.0-79
+${EXECUTION_OS}             OSX
 
 *** Test Cases ***
 
-Pull Docs from sync_gateway
-    [Documentation]     Preseed a sync gateway with documents an make sure documents get pulled to client
-    [Tags]              sync_gateway    grocery_sync    android
+Add Grocery Items
+    [Documentation]     Launch Grocery Sync, add docs, and verify they get pushed to sync_gateway
+    [Tags]              sync_gateway    grocery_sync    android     nightly
+    Add Items
+
+*** Keywords ***
+
+Add Items
     Tap                 id=com.couchbase.grocerysync:id/addItemEditText
     Input Text          id=com.couchbase.grocerysync:id/addItemEditText     Item 1
     Press Enter
@@ -21,11 +34,25 @@ Pull Docs from sync_gateway
     Tap                 id=com.couchbase.grocerysync:id/addItemEditText
     Input Text          id=com.couchbase.grocerysync:id/addItemEditText     Item 3
     Press Enter
+    Debug
 
-*** Keywords ***
+Setup
+#    Start Process               emulator    @Nexus_5_API_23_x86
+#    Wait For Emulator           emulator-5554
 
-Launch Application
-    Open Application    http://localhost:4723/wd/hub    platformName=Android    deviceName=emulator-5554    app=%{GROCERY_SYNC_APK}
+    Install Local Sync Gateway  ${SYNC_GATEWAY_VERSION}    ${EXECUTION_OS}
+    Start Process               ${SYNC_GATEWAY}    ${SYNC_GATEWAY_CONFIGS}/grocery_sync_conf.json    alias=sync_gateway
+    Process Should Be Running   sync_gateway    alias=sync_gateway
+
+#    Start Process               appium    alias=appium
+#    Process Should Be Running   appium    alias=appium
+
+    # Need to be able to pass ip in here to resolve connecting to sync_gateway
+    Open Application            http://localhost:4723/wd/hub    platformName=Android    deviceName=emulator-5554    app=%{GROCERY_SYNC_APK}
+
+Teardown
+    Close Application
+    Terminate All Processes     kill=True
 
 Press Enter
     Press Keycode       66
