@@ -23,10 +23,10 @@ def test_cb_server_remove_node_rebalance(cluster, conf):
 
     start = time.time()
 
-    mode = cluster.reset(config=conf)
+    mode = cluster.reset(config_path=conf)
 
     log.info("server nodes:{}".format(cluster.servers))
     log.info("server node1:{}".format(cluster.servers[0].ip))
-    nodes = ["172.23.105.163"]
-    cluster.rebalance_in(nodes)
+    #nodes = ["172.23.105.163"]
+    #cluster.rebalance_in(nodes)
 

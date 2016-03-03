@@ -4,6 +4,8 @@ import sys
 import json
 import time
 
+import ansible
+
 import ansible.inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
