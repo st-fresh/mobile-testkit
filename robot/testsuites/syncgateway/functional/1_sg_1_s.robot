@@ -1,10 +1,10 @@
 *** Settings ***
-Resource    resources/Paths.robot
+Resource    resources/common.robot
 
 Library     Process
 Library     OperatingSystem
 Library     ${Libraries}/ClusterKeywords.py
-Library     test_users_channels.py
+Library     TestUsersChannels.py
 
 
 Test Setup      Setup
@@ -14,17 +14,49 @@ Test Teardown   Teardown
 ${SERVER_VERSION}           4.1.0
 ${SYNC_GATEWAY_VERSION}     1.2.0-79
 ${CLUSTER_CONFIG}           ${CLUSTER_CONFIGS}/1sg_1s
-${SYNC_GATEWAY_CONFIG}      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default.json
 
 *** Test Cases ***
 # Cluster has been setup
 
-Test Users And Channels
+test multiple users multiple channels (channel cache)
     [Documentation]     Sync Gateway Functional Tests
-    [Tags]              sync_gateway    nightly     bimode
-    Log To Console      Hello
-    Reset Cluster       ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default.json
-    Test Users Channels
+    [Tags]              sync_gateway    sanity
+    test multiple users multiple channels   ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json
+
+test muliple users single channel (channel cache)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test muliple users single channel       ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json
+
+test single user multiple channels (channel cache)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test single user multiple channels      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json
+
+test single user single channel (channel cache)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test single user single channel         ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json
+
+test multiple users multiple channels (distributed index)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test multiple users multiple channels   ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+
+test muliple users single channel (distributed index)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test muliple users single channel       ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+
+test single user multiple channels (distributed index)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test single user multiple channels      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+
+test single user single channel (distributed index)
+    [Documentation]     Sync Gateway Functional Tests
+    [Tags]              sync_gateway    sanity
+    test single user single channel         ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
 
 *** Keywords ***
 Setup
@@ -35,28 +67,3 @@ Setup
 
 Teardown
     Log To Console      Tearing down ...
-
-Provision Cluster
-    [Arguments]     ${server_version}   ${sync_gateway_version}    ${sync_gateway_config}
-    Log To Console              Cluster Config: %{CLUSTER_CONFIG}
-    ${server_arg}               Catenate  SEPARATOR=  --server-version=            ${server_version}
-    ${sync_gateway_arg}         Catenate  SEPARATOR=  --sync-gateway-version=      ${sync_gateway_version}
-    ${sync_gateway_config_arg}  Catenate  SEPARATOR=  --sync-gateway-config-file=  ${sync_gateway_config}
-    ${result} =  Run Process  python  ${LIBRARIES}/provision/provision_cluster.py  ${server_arg}  ${sync_gateway_arg}  ${sync_gateway_config_arg}
-    Log To Console  ${result.stderr}
-    Log To Console  ${result.stdout}
-
-Install Server
-    [Arguments]     ${cluster_config}   ${server_version}
-    ${server_arg}               Catenate  SEPARATOR=  --version=          ${server_version}
-    ${result} =  Run Process  python  ${LIBRARIES}/provision/install_couchbase_server.py  ${server_arg}
-    Log To Console  ${result.stderr}
-    Log To Console  ${result.stdout}
-
-Install Sync Gateway
-    [Arguments]     ${cluster_config}  ${sync_gateway_version}  ${sync_gateway_config}
-    ${sync_gateway_arg}         Catenate  SEPARATOR=  --version=      ${sync_gateway_version}
-    ${sync_gateway_config_arg}  Catenate  SEPARATOR=  --config-file=  ${sync_gateway_config}
-    ${result} =  Run Process  python  ${LIBRARIES}/provision/install_sync_gateway.py  ${sync_gateway_arg}  ${sync_gateway_config_arg}
-    Log To Console  ${result.stderr}
-    Log To Console  ${result.stdout}
