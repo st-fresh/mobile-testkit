@@ -1,10 +1,10 @@
 import json
-
+import os
 
 class Data:
 
     @staticmethod
     def load(filename):
-        with open("data/{}".format(filename), "r") as f:
+        with open("resources/data/{}".format(filename), "r") as f:
             data = json.loads(f.read())
         return data
