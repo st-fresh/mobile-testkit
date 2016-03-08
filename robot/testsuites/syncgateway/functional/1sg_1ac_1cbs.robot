@@ -4,11 +4,13 @@ Resource    resources/common.robot
 Library     Process
 Library     OperatingSystem
 Library     ${Libraries}/ClusterKeywords.py
+Library     ${Libraries}/LoggingKeywords.py
 Library     TestUsersChannels.py
 
+Suite Setup     Suite Setup
+Suite Teardown  Suite Teardown
 
-Test Setup      Setup
-Test Teardown   Teardown
+Test Teardown   Test Teardown
 
 *** Variables ***
 ${SERVER_VERSION}           4.1.0
@@ -70,11 +72,13 @@ test single user single channel (distributed index)
     test single user single channel         ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
 
 *** Keywords ***
-Setup
+Suite Setup
     Log To Console      Setting up ...
     Set Environment Variable    CLUSTER_CONFIG    ${cluster_config}
     #Provision Cluster   ${SERVER_VERSION}   ${SYNC_GATEWAY_VERSION}    ${SYNC_GATEWAY_CONFIG}
-    #Install Sync Gateway   ${CLUSTER_CONFIG}    ${SYNC_GATEWAY_VERSION}    ${SYNC_GATEWAY_CONFIG}
 
-Teardown
+Suite Teardown
     Log To Console      Tearing down ...
+
+Test Teardown
+    Run Keyword If Test Failed      Fetch And Analyze Logs

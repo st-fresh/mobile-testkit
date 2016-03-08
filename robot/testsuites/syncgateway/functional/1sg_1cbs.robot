@@ -9,9 +9,10 @@ Library     TestSync.py
 Library     TestBulkGetCompression.py
 Library     TestContinuous.py
 
+Suite Setup     Suite Setup
+Suite Teardown  Suite Teardown
 
-Test Setup      Setup
-Test Teardown   Teardown
+Test Teardown   Test Teardown
 
 *** Variables ***
 ${SERVER_VERSION}           4.1.0
@@ -117,10 +118,13 @@ test single user single channel
 
 
 *** Keywords ***
-Setup
+Suite Setup
     Log To Console      Setting up ...
     Set Environment Variable    CLUSTER_CONFIG    ${cluster_config}
     #Provision Cluster   ${SERVER_VERSION}   ${SYNC_GATEWAY_VERSION}    ${SYNC_GATEWAY_CONFIG}
 
-Teardown
+Suite Teardown
     Log To Console      Tearing down ...
+
+Test Teardown
+    Run Keyword If Test Failed      Fetch And Analyze Logs
