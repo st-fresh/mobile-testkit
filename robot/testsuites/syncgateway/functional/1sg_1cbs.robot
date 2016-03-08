@@ -5,13 +5,13 @@ Library     Process
 Library     OperatingSystem
 Library     ${Libraries}/ClusterKeywords.py
 Library     ${Libraries}/LoggingKeywords.py
-Library     TestUsersChannels.py
-Library     TestBucketShadow.py
-Library     TestDbOnlineOffline.py
+Library     test_users_channels.py
+Library     test_bucket_shadow.py
+Library     test_db_online_offline.py
 Library     test_db_online_offline_resync.py
-Library     TestSync.py
-Library     TestBulkGetCompression.py
-Library     TestContinuous.py
+Library     test_sync.py
+Library     test_bulk_get_compression.py
+Library     test_continuous.py
 
 Suite Setup     Suite Setup
 Suite Teardown  Suite Teardown

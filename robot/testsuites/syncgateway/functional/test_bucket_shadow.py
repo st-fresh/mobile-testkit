@@ -5,9 +5,7 @@ from testkit.cluster import Cluster
 from testkit.verify import verify_changes
 
 
-class TestBucketShadow:
-
-    def test_bucket_shadow_multiple_sync_gateways(self):
+def test_bucket_shadow_multiple_sync_gateways():
 
         # initially, setup both sync gateways as shadowers -- this needs to be
         # the initial config so that both buckets (source and data) will be created
@@ -58,8 +56,8 @@ class TestBucketShadow:
 
         # Get the doc from the source bucket, possibly retrying if needed
         # Otherwise an exception will be thrown and the test will fail
-        self.get_doc_from_source_bucket_retry(doc_id_bob, bucket)
-        self.get_doc_from_source_bucket_retry(doc_id_alice, bucket)
+        get_doc_from_source_bucket_retry(doc_id_bob, bucket)
+        get_doc_from_source_bucket_retry(doc_id_alice, bucket)
 
         # Stop the SG shadower
         shadower_sg.stop()
@@ -82,7 +80,8 @@ class TestBucketShadow:
         errors = cluster.verify_alive(mode)
         assert(len(errors) == 0)
 
-    def test_bucket_shadow_propagates_to_source_bucket(self):
+
+def test_bucket_shadow_propagates_to_source_bucket():
 
         """
         Verify that a document added to sync gateway propagates to the source (shadow)
@@ -122,10 +121,11 @@ class TestBucketShadow:
 
         # Get the doc from the source bucket, possibly retrying if needed
         # Otherwise an exception will be thrown and the test will fail
-        doc = self.get_doc_from_source_bucket_retry(doc_id, bucket)
+        doc = get_doc_from_source_bucket_retry(doc_id, bucket)
         print("Doc {} appeared in source bucket".format(doc))
 
-    def get_doc_from_source_bucket_retry(self, doc_id, bucket):
+
+def get_doc_from_source_bucket_retry(doc_id, bucket):
         """
         Get a document from the couchbase source bucket
         Will retry until it appears, or give up and raise an exception
