@@ -11,11 +11,11 @@ class TestBucketShadow:
 
         # initially, setup both sync gateways as shadowers -- this needs to be
         # the initial config so that both buckets (source and data) will be created
-        config_path_shadower = "sync_gateway_bucketshadow_cc.json"
-        config_path_non_shadower = "sync_gateway_default_cc.json"
+        config_path_shadower = "resources/sync_gateway_configs/sync_gateway_bucketshadow_cc.json"
+        config_path_non_shadower = "resources/sync_gateway_configs/sync_gateway_default_cc.json"
         source_bucket_name = "source-bucket"
 
-        cluster = Cluster
+        cluster = Cluster()
         mode = cluster.reset(config_path=config_path_shadower)
 
         # pick a sync gateway and choose it as non-shadower.  reset with config.
@@ -90,7 +90,7 @@ class TestBucketShadow:
         """
 
         source_bucket_name = "source-bucket"
-        config_path = "sync_gateway_bucketshadow_cc.json"
+        config_path = "resources/sync_gateway_configs/sync_gateway_bucketshadow_cc.json"
 
         cluster = Cluster()
         mode = cluster.reset(config_path=config_path)

@@ -4,7 +4,9 @@ Resource    resources/common.robot
 Library     Process
 Library     OperatingSystem
 Library     ${Libraries}/ClusterKeywords.py
+Library     ${Libraries}/LoggingKeywords.py
 Library     TestUsersChannels.py
+Library     TestBucketShadow.py
 Library     TestSync.py
 Library     TestBulkGetCompression.py
 Library     TestContinuous.py
