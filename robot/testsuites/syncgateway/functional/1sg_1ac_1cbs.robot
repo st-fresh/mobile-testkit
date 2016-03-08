@@ -6,6 +6,7 @@ Library     OperatingSystem
 Library     ${Libraries}/ClusterKeywords.py
 Library     ${Libraries}/LoggingKeywords.py
 Library     TestUsersChannels.py
+Library     TestDbOnlineOffline.py
 
 Suite Setup     Suite Setup
 Suite Teardown  Suite Teardown
@@ -35,6 +36,45 @@ test continuous changes parametrized 50 user 50 docs 1000 revisions
 
 test continuous changes sanity
     test_continuous_changes_sanity          ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json  ${10}  ${10}
+
+
+# TestDbOnlineOffline
+test online default rest
+    test online default rest                                                                ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json             ${100}
+
+test offline false config_rest
+    test offline false config_rest                                                          ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_offline_false_di.json       ${100}
+
+test online to offline check 503
+    test online to offline check 503                                                        ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json           ${100}
+
+#test online to offline changes feed controlled close continuous
+#    test online to offline changes feed controlled close continuous                         ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json   ${5000}
+
+test online to offline continous changes feed controlled close sanity mulitple users
+    test online to offline continous changes feed controlled close sanity mulitple users    ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json     ${5000}     ${40}
+
+test online to offline changes feed controlled close longpoll sanity
+    test online to offline changes feed controlled close longpoll sanity                    ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json     ${5000}
+
+test online to offline longpoll changes feed controlled close sanity mulitple users
+    test online to offline longpoll changes feed controlled close sanity mulitple users     ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json     ${5000}     ${40}
+
+# test online to offline changes feed controlled close longpoll
+#    test online to offline changes feed controlled close longpoll                           ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json     ${5000}
+
+# test offline true config bring online
+#    test offline true config bring online                                                   ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_offline_true_di.json    ${100}
+
+test db offline tap loss sanity
+    test db offline tap loss sanity                                                         ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_dcp_di.json     ${100}
+
+# test db delayed online
+#    test db delayed online                                                                  ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_di.json     ${100}
+
+test multiple dbs unique buckets lose tap
+    test multiple dbs unique buckets lose tap                                               ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_multiple_dbs_unique_buckets_di.json     ${100}
+
 
 # TestSync (Distributed Index)
 test issue 1524

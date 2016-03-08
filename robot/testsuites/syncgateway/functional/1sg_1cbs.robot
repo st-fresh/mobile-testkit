@@ -7,6 +7,7 @@ Library     ${Libraries}/ClusterKeywords.py
 Library     ${Libraries}/LoggingKeywords.py
 Library     TestUsersChannels.py
 Library     TestBucketShadow.py
+Library     TestDbOnlineOffline.py
 Library     TestSync.py
 Library     TestBulkGetCompression.py
 Library     TestContinuous.py
@@ -65,6 +66,48 @@ test bulk get compression x accept part encoding gzip 1.2 user agent
 
 test bulk get compression accept encoding gzip x accept part encoding gzip 1.2 user agent
     test bulk get compression   ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_cc.json    ${300}  accept_encoding=gzip  x_accept_part_encoding=gzip  user_agent=CouchbaseLite/1.2
+
+
+# TestDbOnlineOffline
+test online default rest
+    test online default rest                                                                ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json             ${100}
+
+test offline false config_rest
+    test offline false config_rest                                                          ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_offline_false_cc.json       ${100}
+
+test online to offline check 503
+    test online to offline check 503                                                        ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json           ${100}
+
+test online to offline changes feed controlled close continuous
+    test online to offline changes feed controlled close continuous                         ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json   ${5000}
+
+test online to offline continous changes feed controlled close sanity mulitple users
+    test online to offline continous changes feed controlled close sanity mulitple users    ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json     ${5000}     ${40}
+
+test online to offline changes feed controlled close longpoll sanity
+    test online to offline changes feed controlled close longpoll sanity                    ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json     ${5000}
+
+test online to offline longpoll changes feed controlled close sanity mulitple users
+    test online to offline longpoll changes feed controlled close sanity mulitple users     ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json     ${5000}     ${40}
+
+test online to offline changes feed controlled close longpoll
+    test online to offline changes feed controlled close longpoll                           ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json     ${5000}
+
+test offline true config bring online
+    test offline true config bring online                                                   ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_offline_true_cc.json    ${100}
+
+test db offline tap loss sanity dcp
+    test db offline tap loss sanity                                                         ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_dcp_cc.json     ${100}
+
+test db offline tap loss sanity
+    test db offline tap loss sanity                                                         ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json     ${100}
+
+test db delayed online
+    test db delayed online                                                                  ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_default_cc.json     ${100}
+
+test multiple dbs unique buckets lose tap
+    test multiple dbs unique buckets lose tap                                               ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_multiple_dbs_unique_buckets_cc.json     ${100}
+
 
 # TestContinuous
 test continuous changes parametrized 1 user 5000 docs 1 revision
