@@ -8,6 +8,7 @@ Library     ${Libraries}/LoggingKeywords.py
 Library     TestUsersChannels.py
 Library     TestBucketShadow.py
 Library     TestDbOnlineOffline.py
+Library     test_db_online_offline_resync.py
 Library     TestSync.py
 Library     TestBulkGetCompression.py
 Library     TestContinuous.py
@@ -107,6 +108,17 @@ test db delayed online
 
 test multiple dbs unique buckets lose tap
     test multiple dbs unique buckets lose tap                                               ${SYNC_GATEWAY_CONFIGS}/bucket_online_offline/bucket_online_offline_multiple_dbs_unique_buckets_cc.json     ${100}
+
+
+# TestDBOnlineOfflineResync
+test bucket online offline resync sanity
+    test bucket online offline resync sanity    ${5}    ${100}  ${10}
+
+test bucket online offline resync with online
+    test bucket online offline resync with online   ${5}    ${100}  ${5}
+
+test bucket online offline resync with offline
+    test bucket online offline resync with offline  ${5}    ${100}  ${5}
 
 
 # TestContinuous
