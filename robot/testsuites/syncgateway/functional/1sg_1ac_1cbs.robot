@@ -18,18 +18,21 @@ ${CLUSTER_CONFIG}           ${CLUSTER_CONFIGS}/1sg_1ac_1cbs
 *** Test Cases ***
 # Cluster has been setup
 
-# Distributed index tests
-test multiple users multiple channels (distributed index)
-    test multiple users multiple channels   ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+# TestContinuous
+test continuous changes parametrized 1 user 5000 docs 1 revision
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json  ${1}  ${5000}  ${1}
 
-test muliple users single channel (distributed index)
-    test muliple users single channel       ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+test continuous changes parametrized 50 users 5000 docs 1 revision
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json  ${50}  ${5000}  ${1}
 
-test single user multiple channels (distributed index)
-    test single user multiple channels      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+test continuous changes parametrized 50 users 5000 10 docs 10 revisions
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json  ${50}  ${10}  ${10}
 
-test single user single channel (distributed index)
-    test single user single channel         ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+test continuous changes parametrized 50 user 50 docs 1000 revisions
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json  ${50}  ${50}  ${1000}
+
+test continuous changes sanity
+    test_continuous_changes_sanity          ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json  ${10}  ${10}
 
 # TestSync (Distributed Index)
 test issue 1524
@@ -52,6 +55,19 @@ test sync sanity backfill
 
 test sync require roles
     test sync require roles     ${SYNC_GATEWAY_CONFIGS}/custom_sync/sync_gateway_custom_sync_require_roles_di.json
+
+# TestUsersChannels (Distributed Index)
+test multiple users multiple channels (distributed index)
+    test multiple users multiple channels   ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+
+test muliple users single channel (distributed index)
+    test muliple users single channel       ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+
+test single user multiple channels (distributed index)
+    test single user multiple channels      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
+
+test single user single channel (distributed index)
+    test single user single channel         ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_di.json
 
 *** Keywords ***
 Setup

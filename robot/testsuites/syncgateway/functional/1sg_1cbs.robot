@@ -7,6 +7,7 @@ Library     ${Libraries}/ClusterKeywords.py
 Library     TestUsersChannels.py
 Library     TestSync.py
 Library     TestBulkGetCompression.py
+Library     TestContinuous.py
 
 
 Test Setup      Setup
@@ -20,6 +21,23 @@ ${SYNC_GATEWAY_CONFIG}      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functio
 
 *** Test Cases ***
 # Cluster has been setup
+
+# TestContinuous
+test continuous changes parametrized 1 user 5000 docs 1 revision
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json  ${1}  ${5000}  ${1}
+
+test continuous changes parametrized 50 users 5000 docs 1 revision
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json  ${50}  ${5000}  ${1}
+
+test continuous changes parametrized 50 users 5000 10 docs 10 revisions
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json  ${50}  ${10}  ${10}
+
+test continuous changes parametrized 50 user 50 docs 1000 revisions
+    test continuous changes parametrized    ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json  ${50}  ${50}  ${1000}
+
+test continuous changes sanity
+    test_continuous_changes_sanity          ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json  ${10}  ${10}
+
 
 # TestBulkGetCompression
 test bulk get compression no compression
