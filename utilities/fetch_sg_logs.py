@@ -18,6 +18,7 @@ def fetch_sync_gateway_logs(prefix, is_perf_run=False):
     status = run_ansible_playbook("fetch-sync-gateway-logs.yml", stop_on_fail=False)
     if status != 0:
         log.error("Error pulling logs")
+        raise Exception("Error pulling logs")
 
     # zip logs and timestamp
     if os.path.isdir("/tmp/sg_logs"):
