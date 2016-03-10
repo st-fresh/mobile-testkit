@@ -18,6 +18,8 @@
 
   - name: List directory
     shell: find /home/sg_accel
+    register: find_output
+  - debug: msg="{{ find_output.stdout }}"
   - name: Fetch sg_accel logs
     # Do not validate checksum as this is just a passive grab of the logs. Since they are continuously being appended to, the checksum may fail
     fetch: src=/home/sg_accel/logs/sg_accel_access.log dest=/tmp/sg_logs/{{ inventory_hostname }}/ fail_on_missing=yes flat=yes validate_checksum=no
