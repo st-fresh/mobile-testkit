@@ -32,12 +32,12 @@ def get_host_ips():
     cbs_vars = hosts_for_tag("couchbase_servers")
     sg_vars = hosts_for_tag("sync_gateways")
     lg_vars = hosts_for_tag("load_generators")
-    sgw_vars = hosts_for_tag("sync_gateway_index_writers")
+    ac_vars = hosts_for_tag("accels")
 
     ips.extend([cbs_var["ansible_host"] for cbs_var in cbs_vars])
     ips.extend([sg_var["ansible_host"] for sg_var in sg_vars])
     ips.extend([lg_var["ansible_host"] for lg_var in lg_vars])
-    ips.extend([sgw_var["ansible_host"] for sgw_var in sgw_vars])
+    ips.extend([ac_var["ansible_host"] for ac_var in ac_vars])
 
     # Ips may be used for multiple purposes
     return set(ips)

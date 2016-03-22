@@ -40,12 +40,8 @@ class Cluster:
             print("Using Cluster: {}.json".format(cluster))
 
         cbs = [{"name": cbs["name"], "ip": cbs["ip"]} for cbs in cluster["couchbase_servers"]]
-
-        acs = [{"name": ac["name"], "ip": ac["ip"]} for ac in cluster["sync_gateway_index_writers"]]
-        acs_ips = [ac["ip"] for ac in acs]
-
-        # Only assign sync_gateways that are not defined as sync_gateway_index_writers
-        sgs = [{"name": sg["name"], "ip": sg["ip"]} for sg in cluster["sync_gateways"] if not sg["ip"] in acs_ips]
+        acs = [{"name": ac["name"], "ip": ac["ip"]} for ac in cluster["accels"]]
+        sgs = [{"name": sg["name"], "ip": sg["ip"]} for sg in cluster["sync_gateways"]]
 
         log.info("cbs: {}".format(cbs))
         log.info("sgs: {}".format(sgs))

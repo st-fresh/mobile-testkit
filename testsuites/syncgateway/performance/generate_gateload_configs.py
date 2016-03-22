@@ -54,8 +54,7 @@ def sync_gateway_non_index_writers():
     don't want to send load to those
     """
     sync_gateways = hosts_for_tag("sync_gateways")
-    sync_gateway_index_writers = hosts_for_tag("sync_gateway_index_writers")
-    return [sg for sg in sync_gateways if sg not in sync_gateway_index_writers]
+    return sync_gateways
 
 
 def render_gateload_template(sync_gateway, user_offset, number_of_pullers, number_of_pushers):
