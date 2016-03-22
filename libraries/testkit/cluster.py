@@ -63,6 +63,13 @@ class Cluster:
         self.validate_cluster()
 
         ansible_runner = AnsibleRunner()
+
+        # Parse config and grab bucket names
+        config_path_full = os.path.abspath(config_path)
+        config = Config(config_path_full)
+        mode = config.get_mode()
+        bucket_name_set = config.get_bucket_name_set()
+        self.sync_gateway_config = config
         
         # Stop sync_gateways
         log.info(">>> Stopping sync_gateway")
@@ -71,32 +78,26 @@ class Cluster:
             log.error("Error in provisioning!! Verify your ssh user is correct in 'libraries/provision/playbooks/ansible.cfg'")
             raise Exception("Failed to run provisioning")
 
-        # Stop sync_gateways
-        log.info(">>> Stopping sg_accel")
-        status = ansible_runner.run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
-        assert(status == 0)
-
         # Deleting sync_gateway artifacts
         log.info(">>> Deleting sync_gateway artifacts")
         status = ansible_runner.run_ansible_playbook("delete-sync-gateway-artifacts.yml", stop_on_fail=False)
         assert(status == 0)
 
-        # Deleting sg_accel artifacts
-        log.info(">>> Deleting sg_accel artifacts")
-        status = ansible_runner.run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
-        assert(status == 0)
+        if mode == "distributed_index":
+            # Stop accels
+            log.info(">>> Stopping sg_accel")
+            status = ansible_runner.run_ansible_playbook("stop-sg-accel.yml", stop_on_fail=False)
+            assert(status == 0)
+
+            # Deleting sg_accel artifacts
+            log.info(">>> Deleting sg_accel artifacts")
+            status = ansible_runner.run_ansible_playbook("delete-sg-accel-artifacts.yml", stop_on_fail=False)
+            assert(status == 0)
 
         # Delete buckets
         log.info(">>> Deleting buckets on: {}".format(self.servers[0].ip))
         self.servers[0].delete_buckets()
-        
-        # Parse config and grab bucket names
-        config_path_full = os.path.abspath(config_path)
-        config = Config(config_path_full)
-        mode = config.get_mode()
-        bucket_name_set = config.get_bucket_name_set()
-        self.sync_gateway_config = config
-        
+
         log.info(">>> Creating buckets on: {}".format(self.servers[0].ip))
         log.info(">>> Creating buckets {}".format(bucket_name_set))
         self.servers[0].create_buckets(bucket_name_set)
