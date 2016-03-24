@@ -7,6 +7,7 @@ Library     ${Libraries}/ClusterKeywords.py
 Library     ${Libraries}/LoggingKeywords.py
 
 Library     test_bucket_shadow.py
+Library     test_sg_replicate.py
 
 Suite Setup     Suite Setup
 Suite Teardown  Suite Teardown
@@ -30,13 +31,15 @@ test bucket shadow low_revs limit
 test bucket shadow multiple sync gateways
     test bucket shadow multiple sync gateways
 
+Test Sg Replicate 1
+    Test Sg Replicate 1     1000    ${1000}
 
 *** Keywords ***
 Suite Setup
     Log To Console              Setting up ...
     Set Environment Variable    CLUSTER_CONFIG    ${CLUSTER_CONFIG}
     Log                         Using cluster ${CLUSTER_CONFIG}
-    Provision Cluster   ${SERVER_VERSION}   ${SYNC_GATEWAY_VERSION}    ${SYNC_GATEWAY_CONFIG}
+    # Provision Cluster   ${SERVER_VERSION}   ${SYNC_GATEWAY_VERSION}    ${SYNC_GATEWAY_CONFIG}
 
 Suite Teardown
     Log To Console      Tearing down ...
