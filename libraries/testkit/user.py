@@ -92,7 +92,11 @@ class User:
 
         resp.raise_for_status()
         return resp.json()
-    
+
+    def add_doc2(self, doc_id=None, content=None, retries=False):
+        self.sg._headers = self._headers
+        self.sg.add_doc(doc_id=doc_id, content=content, channels=self.channels, retries=retries)
+
     # PUT /{db}/{doc}
     # PUT /{db}/{local-doc-id}
     def add_doc(self, doc_id=None, content=None, retries=False):

@@ -5,6 +5,7 @@ Library     Process
 Library     OperatingSystem
 Library     ${Libraries}/ClusterKeywords.py
 Library     ${Libraries}/LoggingKeywords.py
+Library     ${Libraries}/AndroidKeywords.py
 
 Library     test_bucket_shadow.py
 Library     test_sg_replicate.py
@@ -31,8 +32,12 @@ test bucket shadow low_revs limit
 test bucket shadow multiple sync gateways
     test bucket shadow multiple sync gateways
 
-Test Sg Replicate 1
-    Test Sg Replicate 1     1000    ${1000}
+Test Sg Replicate 2
+    Start Emulator  23
+    Start Emulator  23
+    Build Liteserv  master
+    Test Sg Replicate 2
+    Terminate All Processes
 
 *** Keywords ***
 Suite Setup
@@ -45,4 +50,4 @@ Suite Teardown
     Log To Console      Tearing down ...
 
 Test Teardown
-    Run Keyword If Test Failed      Fetch And Analyze Logs
+    # Run Keyword If Test Failed      Fetch And Analyze Logs

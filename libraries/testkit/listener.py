@@ -5,6 +5,7 @@ import time
 import json
 
 from testkit.debug import *
+from testkit.syncgateway import SyncGateway
 
 from testkit import settings
 import logging
@@ -15,16 +16,28 @@ log = logging.getLogger(settings.LOGGER)
 class Listener:
     def __init__(self, target, local_port, apk_path, activity, reinstall):
 
+        print "Calling Listener init"
+
         self.target = target
         self.local_port = local_port
 
         self.url = ""
+        print "Calling install_and_launch_app. Target: {}".format(target)
         self.install_and_launch_app(target, local_port, apk_path, activity, reinstall)
+        print "/Calling install_and_launch_app"
 
         if self.is_emulator(target):
             self.url = "http://{}:{}".format(self.get_host_ip(), local_port)
         else:
             self.url = "http://{}:{}".format(self.get_device_ip(target), 5984)
+
+        # Wrap a Sync Gateway instance and use that as a client to hit the LiteServ listener
+        # in Couchbase Lite
+        print "Calling SyncGateway"
+        fake_target = {"ip": None, "name": None}
+        self.sg = SyncGateway(fake_target)
+        self.sg.url = self.url
+        print "/Calling SyncGateway"
 
         log.info("Listener running at {} ...".format(self.url))
 
@@ -33,7 +46,7 @@ class Listener:
         # Build monkeyrunner install cmd
         cmd_args = [
             "monkeyrunner",
-            "/Users/sethrosetter/Code/sync-gateway-testcluster/utilities/monkeyrunner.py",
+            "libraries/utilities/monkeyrunner.py",
             "--target={}".format(target),
             "--apk-path={}".format(apk_path),
             "--activity={}".format(activity),
@@ -68,8 +81,6 @@ class Listener:
         ip = ip.split("/")[0]
         return ip
 
-
-
     def kill_port_forwarding(self):
         log.info("Killing forwarding rule for {} on port: {}".format(self.target, self.local_port))
         subprocess.call(['adb', '-s', self.target, 'forward', '--remove', 'tcp:{}'.format(self.local_port)])
@@ -78,5 +89,32 @@ class Listener:
         log.info("Setup forwarding rule for {} on port: {}".format(self.target, self.local_port))
         subprocess.call(['adb', '-s', self.target, 'forward', 'tcp:{}'.format(self.local_port), 'tcp:5984'])
 
+    def verify_launched(self):
+        self.sg.verify_launched()
 
+    def create_db(self, name):
+        return self.sg.create_db(name)
 
+    def delete_db(self, name):
+        return self.sg.delete_db(name)
+
+    def get_dbs(self):
+        self.sg.get_dbs()
+
+    def reset(self):
+        self.sg.reset()
+
+    def start_push_replication(self, target, db):
+        self.sg.start_push_replication(target, db)
+
+    def stop_push_replication(self, target, db):
+        self.sg.stop_push_replication(target, db)
+
+    def start_pull_replication(self, target, db):
+        self.sg.start_pull_replication(target, db)
+
+    def stop_pull_replication(self, target, db):
+        self.sg.stop_pull_replication(target, db)
+
+    def get_num_docs(self, db):
+        return self.sg.get_num_docs(db)
