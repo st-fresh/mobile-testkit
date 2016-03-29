@@ -102,9 +102,9 @@ class SyncGateway:
         data = {
             "source": "{}".format(db),
             "target": "{}/{}".format(target, db),
-            "continuous": True
+            "continuous": False
         }
-        r = requests.post("{}/_replicate".format(self.url), data=json.dumps(data))
+        r = requests.post("{}/_replicate".format(self.url), headers=self._headers, data=json.dumps(data))
         log_request(r)
         log_response(r)
         r.raise_for_status()
@@ -116,7 +116,7 @@ class SyncGateway:
             "target": "{}/{}".format(target, db),
             "cancel": True
         }
-        r = requests.post("{}/_replicate".format(self.url), data=json.dumps(data))
+        r = requests.post("{}/_replicate".format(self.url), headers=self._headers, data=json.dumps(data))
         log_request(r)
         log_response(r)
         r.raise_for_status()
@@ -126,9 +126,9 @@ class SyncGateway:
         data = {
             "source": "{}/{}".format(target, db),
             "target": "{}".format(db),
-            "continuous": True
+            "continuous": False
         }
-        r = requests.post("{}/_replicate".format(self.url), data=json.dumps(data))
+        r = requests.post("{}/_replicate".format(self.url), headers=self._headers, data=json.dumps(data))
         log_request(r)
         log_response(r)
         r.raise_for_status()
@@ -140,7 +140,7 @@ class SyncGateway:
             "target": "{}".format(db),
             "cancel": True
         }
-        r = requests.post("{}/_replicate".format(self.url), data=json.dumps(data))
+        r = requests.post("{}/_replicate".format(self.url), headers=self._headers, data=json.dumps(data))
         log_request(r)
         log_response(r)
         r.raise_for_status()

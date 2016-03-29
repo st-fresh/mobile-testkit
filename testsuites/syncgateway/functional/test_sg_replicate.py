@@ -1,14 +1,21 @@
+from __future__ import print_function
 from testkit.cluster import Cluster
 from testkit.syncgateway import SyncGateway
 from testkit.admin import Admin
+from testkit.user import User
 from testkit.android import parallel_install
+import sys
 
 import time
+
+
 
 
 def test_sg_replicate_2():
 
     # deploy liteserv
+
+    print("TEST STDERR", file=sys.stderr)
 
     should_reinstall = True
     apk_path = "deps/couchbase-lite-android-liteserv/couchbase-lite-android-liteserv/build/outputs/apk/couchbase-lite-android-liteserv-debug.apk"
@@ -52,52 +59,70 @@ def test_sg_replicate_1():
     # cluster = Cluster()
     # cluster.reset("resources/sync_gateway_configs/jdskjslkdjflsjdlkfsk")
 
-    print "hello!!!"
+    print("hello!!!")
 
-    source_db = "source_db"
-    target_db = "target_db"
+    db = "db"
 
     target1 = {}
-    target1["ip"] = "docker"  # hostname defined in /etc/hosts
+    target1["ip"] = "192.168.99.100"  # hostname defined in /etc/hosts
     target1["name"] = "sg1"
 
     sg1 = SyncGateway(target1)  # dict w/ name and ip
     sg1.url = "http://{}:5984".format(target1["ip"])
 
     target2 = {}
-    target2["ip"] = "docker"  # hostname defined in /etc/hosts
+    target2["ip"] = "192.168.99.100"  # hostname defined in /etc/hosts
     target2["name"] = "sg2"
     sg2 = SyncGateway(target2)  # dict w/ name and ip
     sg2.url = "http://{}:5986".format(target2["ip"])
 
-
     admin = Admin(sg1)
     admin.admin_url = sg1.url
 
-    sg1_user = admin.register_user(
+    sg1_user = User(
         target=sg1,
-        db=source_db,
-        name="bob",
-        password="password",
-        channels=["ABC", "NBC", "CBS"],
+        db=db,
+        name=None,
+        password=None,
+        channels=[],
     )
 
+    sg2_user = User(
+        target=sg2,
+        db=db,
+        name=None,
+        password=None,
+        channels=[],
+    )
+
+    # Delete dbs if they already exist
+    sg1_dbs = sg1.get_dbs()
+    sg2_dbs = sg2.get_dbs()
+    if db in sg1_dbs:
+        sg1.delete_db(db)
+    if db in sg2_dbs:
+        sg2.delete_db(db)
+
     # Add docs to the source db
-    sg1.create_db(source_db)
-    doc = sg1.add_doc(source_db)
-    print "Doc: {}".format(doc)
+    sg1.create_db(db)
+    doc_id = sg1_user.add_doc()
+    print("Doc: {}".format(doc_id))
 
     # Create the target db
-    sg2.create_db(target_db)
+    sg2.create_db(db)
+
+    #print("Sleeping ..")
+    #time.sleep(5)
 
     # Start a push replication
-    sg1.start_push_replication(sg2, target_db)
+    sg1.start_push_replication(sg2.url, db)
 
+    # Verify that the doc made it to the target
+    sg2_doc = sg2_user.get_doc(doc_id)
+    print("Sg2_doc: {}".format(sg2_doc))
 
-
-
-
-
+    assert sg2_doc is not None
+    assert sg2_doc["_id"] == doc_id
 
 
 pass

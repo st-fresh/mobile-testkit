@@ -32,12 +32,12 @@ test bucket shadow low_revs limit
 test bucket shadow multiple sync gateways
     test bucket shadow multiple sync gateways
 
-Test Sg Replicate 2
-    Start Emulator  23
-    Start Emulator  23
-    Build Liteserv  master
-    Test Sg Replicate 2
-    Terminate All Processes
+Test Sg Replicate 1
+    # Start Emulator  23
+    # Start Emulator  23
+    # Build Liteserv  master
+    Test Sg Replicate 1
+    # Terminate All Processes
 
 *** Keywords ***
 Suite Setup
@@ -50,4 +50,4 @@ Suite Teardown
     Log To Console      Tearing down ...
 
 Test Teardown
-    # Run Keyword If Test Failed      Fetch And Analyze Logs
+    Run Keyword If Test Failed      Fetch And Analyze Logs
