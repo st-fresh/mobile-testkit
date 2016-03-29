@@ -42,17 +42,22 @@ def test_sg_replicate_1():
     # cluster = Cluster()
     # cluster.reset("resources/sync_gateway_configs/jdskjslkdjflsjdlkfsk")
 
+    # To run this test, you must manually spin up CouchDB under docker
+    # with docker toolbox via:
+    #  docker run -p 5984:5984 -d couchdb
+    #  docker run -p 5986:5984 -d couchdb
+
     db = "db"
 
     target1 = {}
-    target1["ip"] = "192.168.99.100"  # hostname defined in /etc/hosts
+    target1["ip"] = "192.168.99.100"  # the hostname that appears in Docker Quickstart Terminal
     target1["name"] = "sg1"
 
     sg1 = SyncGateway(target1)  # dict w/ name and ip
     sg1.url = "http://{}:5984".format(target1["ip"])
 
     target2 = {}
-    target2["ip"] = "192.168.99.100"  # hostname defined in /etc/hosts
+    target2["ip"] = "192.168.99.100"  # the hostname that appears in Docker Quickstart Terminal
     target2["name"] = "sg2"
     sg2 = SyncGateway(target2)  # dict w/ name and ip
     sg2.url = "http://{}:5986".format(target2["ip"])
