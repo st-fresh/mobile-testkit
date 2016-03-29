@@ -154,53 +154,5 @@ class SyncGateway:
         resp_data = r.json()
         return resp_data["total_rows"]
 
-    # PUT /{db}/{doc}
-    # PUT /{db}/{local-doc-id}
-    # NOTE: Copied and pasted from user.py
-    def add_doc(self, db, doc_id=None, content=None, channels=None, retries=False):
-
-        doc_body = dict()
-        doc_body["updates"] = 0
-
-        if channels is not None:
-            doc_body["channels"] = channels
-
-        if content is not None:
-            doc_body["content"] = content
-
-        body = json.dumps(doc_body)
-
-        if doc_id is None:
-            # Use a POST and let sync_gateway generate an id
-            resp = requests.post("{0}/{1}/".format(self.url, db), headers=self._headers, data=body,
-                                 timeout=settings.HTTP_REQ_TIMEOUT)
-            log.debug("{0} POST {1}".format(db, resp.url))
-        else:
-            # If the doc id is specified, use PUT with doc_id in url
-            doc_url = self.url + "/" + db + "/" + doc_id
-
-            if retries:
-                session = requests.Session()
-                adapter = requests.adapters.HTTPAdapter(
-                    max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR,
-                                      status_forcelist=settings.ERROR_CODE_LIST))
-                session.mount("http://", adapter)
-                resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-            else:
-                resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-
-            log.debug("{0} PUT {1}".format(db, resp.url))
-
-        resp.raise_for_status()
-        resp_json = resp.json()
-
-        # 200 as result of POST to /{db}/, 201 is result of PUT to /{db}/{doc}
-        if resp.status_code == 200 or resp.status_code == 201:
-            if doc_id is None:
-                # Get id generated from sync_gateway in response
-                doc_id = resp_json["id"]
-
-        return doc_id
-
     def __repr__(self):
         return "SyncGateway: {}:{}\n".format(self.hostname, self.ip)

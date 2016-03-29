@@ -16,15 +16,11 @@ log = logging.getLogger(settings.LOGGER)
 class Listener:
     def __init__(self, target, local_port, apk_path, activity, reinstall):
 
-        print "Calling Listener init"
-
         self.target = target
         self.local_port = local_port
 
         self.url = ""
-        print "Calling install_and_launch_app. Target: {}".format(target)
         self.install_and_launch_app(target, local_port, apk_path, activity, reinstall)
-        print "/Calling install_and_launch_app"
 
         if self.is_emulator(target):
             self.url = "http://{}:{}".format(self.get_host_ip(), local_port)
@@ -33,11 +29,9 @@ class Listener:
 
         # Wrap a Sync Gateway instance and use that as a client to hit the LiteServ listener
         # in Couchbase Lite
-        print "Calling SyncGateway"
         fake_target = {"ip": None, "name": None}
         self.sg = SyncGateway(fake_target)
         self.sg.url = self.url
-        print "/Calling SyncGateway"
 
         log.info("Listener running at {} ...".format(self.url))
 

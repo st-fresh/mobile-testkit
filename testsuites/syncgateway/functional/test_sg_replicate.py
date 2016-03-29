@@ -1,4 +1,3 @@
-from __future__ import print_function
 from testkit.cluster import Cluster
 from testkit.syncgateway import SyncGateway
 from testkit.admin import Admin
@@ -8,14 +7,10 @@ import sys
 
 import time
 
-
-
-
+# Attempt to spinup liteserv .. ran into port forwarding issues and emulator crashing OSX issues
 def test_sg_replicate_2():
 
     # deploy liteserv
-
-    print("TEST STDERR", file=sys.stderr)
 
     should_reinstall = True
     apk_path = "deps/couchbase-lite-android-liteserv/couchbase-lite-android-liteserv/build/outputs/apk/couchbase-lite-android-liteserv-debug.apk"
@@ -41,25 +36,11 @@ def test_sg_replicate_2():
         emu.verify_launched()
 
 
-    pass
-
-
 def test_sg_replicate_1():
-
-
-    # Add docs to sg1
-
-    # Kick off replication from sg1 -> sg2
-
-    # Poll sg2 until all docs have replicated -- just hit _all_docs and make sure that all docs are there
-
-    # Check active_tasks to make sure the replication is in the "done" state (or is gone)
 
     # don't need this, spinning up couchdb by hand
     # cluster = Cluster()
     # cluster.reset("resources/sync_gateway_configs/jdskjslkdjflsjdlkfsk")
-
-    print("hello!!!")
 
     db = "db"
 
@@ -110,9 +91,6 @@ def test_sg_replicate_1():
 
     # Create the target db
     sg2.create_db(db)
-
-    #print("Sleeping ..")
-    #time.sleep(5)
 
     # Start a push replication
     sg1.start_push_replication(sg2.url, db)
