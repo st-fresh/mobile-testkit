@@ -373,13 +373,17 @@ python libraries/utilities/install_keys.py --key-name=sample_key.pub --ssh-user=
 ```
 - Generate the necessary cluster topologies to run the tests
 ```
-python libraries/utilities/generate_clusters_from_pool.py`
+python libraries/utilities/generate_clusters_from_pool.py
 ```
 This targets the 'resources/pool.json' you supplied above and generates cluster definitions required for provisioning and running the tests. The generated configurations can be found in 'resources/cluster_configs/'.
 
-- Provision the cluster with --install-deps flag (only once)
 
 - Set the `CLUSTER_CONFIG` environment variable that is required by the `provision_cluster.py` script.  Eg: `$ export CLUSTER_CONFIG=resources/cluster_configs/2sg_1cbs`
+
+- Install pool dependencies
+```
+$ python libraries/provision/install_dependencies.py
+```
 
 - Install sync_gateway package:
 
@@ -387,7 +391,6 @@ This targets the 'resources/pool.json' you supplied above and generates cluster 
 $ python libraries/provision/provision_cluster.py \
     --server-version=4.1.0 \
     --sync-gateway-version=1.2.0-79
-    --install-deps (first time only, this will install prerequisites to build / debug)
 ```
 
 - OR Install sync_gateway source:
@@ -396,7 +399,6 @@ $ python libraries/provision/provision_cluster.py \
 $ python libraries/provision/provision_cluster.py \
     --server-version=4.1.0 \
     --sync-gateway-branch=master
-    --install-deps (first time only, this will install prerequisites to build / debug)
 ```
 
 If you experience ssh errors, you may need to verify that the key has been added to your ssh agent

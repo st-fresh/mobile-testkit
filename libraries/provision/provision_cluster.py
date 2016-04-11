@@ -11,7 +11,7 @@ from install_sync_gateway import SyncGatewayConfig
 from ansible_runner import AnsibleRunner
 
 
-def provision_cluster(couchbase_server_config, sync_gateway_config, install_deps):
+def provision_cluster(couchbase_server_config, sync_gateway_config):
 
     print "\n>>> Host info:\n"
 
@@ -45,15 +45,6 @@ def provision_cluster(couchbase_server_config, sync_gateway_config, install_deps
     # Reset previous installs
     status = ansible_runner.run_ansible_playbook("remove-previous-installs.yml", stop_on_fail=False)
     assert(status == 0)
-
-    if install_deps:
-        # OS-level modifications
-        status = ansible_runner.run_ansible_playbook("os-level-modifications.yml", stop_on_fail=False)
-        assert(status == 0)
-
-        # Install dependencies
-        status = ansible_runner.run_ansible_playbook("install-common-tools.yml", stop_on_fail=False)
-        assert(status == 0)
 
     # Clear firewall rules
     status = ansible_runner.run_ansible_playbook("flush-firewall.yml", stop_on_fail=False)
@@ -107,9 +98,6 @@ if __name__ == "__main__":
     parser.add_option("", "--sync-gateway-branch",
                       action="store", type="string", dest="source_branch", default=None,
                       help="sync_gateway branch to checkout and build")
-
-    parser.add_option("", "--install-deps", action="store_true", dest="install_deps", default=False,
-                      help="This flag will install the required dependencies to build sync_gateway from source")
 
     parser.add_option("", "--skip-bucketflush",
                       action="store", dest="skip_bucketflush", default=False,
