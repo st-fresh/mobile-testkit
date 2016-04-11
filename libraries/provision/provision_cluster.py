@@ -146,5 +146,4 @@ if __name__ == "__main__":
     provision_cluster(
         couchbase_server_config=server_config,
         sync_gateway_config=sync_gateway_config,
-        install_deps=opts.install_deps
     )
