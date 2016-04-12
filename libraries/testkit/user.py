@@ -1,4 +1,3 @@
-import requests
 import concurrent.futures
 import json
 import base64
@@ -6,16 +5,14 @@ import uuid
 import re
 import time
 
-from requests.packages.urllib3.util import Retry
-from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError
-from requests import Session, exceptions
-from collections import defaultdict
+from requests import Session
 
 from testkit.debug import *
 from testkit import settings
 import logging
 log = logging.getLogger(settings.LOGGER)
+
 
 class User:
     def __init__(self, target, db, name, password, channels):
@@ -28,9 +25,10 @@ class User:
         self.channels = list(channels)
         self.target = target
 
+        self._session = Session()
         auth = base64.b64encode("{0}:{1}".format(self.name, self.password).encode())
-        self._auth = auth.decode("UTF-8")
-        self._headers = {'Content-Type': 'application/json', "Authorization": "Basic {}".format(self._auth)}
+        auth = auth.decode("UTF-8")
+        self._session.headers = {'Content-Type': 'application/json', "Authorization": "Basic {}".format(auth)}
 
     def __str__(self):
         return "USER: name={0} password={1} db={2} channels={3} cache={4}".format(self.name, self.password, self.db, self.channels, len(self.cache))
@@ -38,7 +36,7 @@ class User:
     # GET /{db}/{doc}
     # GET /{db}/{local-doc-id}
     def get_doc(self, doc_id):
-        resp = requests.get("{0}/{1}/{2}".format(self.target.url, self.db, doc_id), headers=self._headers)
+        resp = self._session.get("{0}/{1}/{2}".format(self.target.url, self.db, doc_id))
         log.debug("GET {}".format(resp.url))
         resp.raise_for_status()
         return resp.json()
@@ -48,7 +46,7 @@ class User:
         docs_array = [{"id": doc_id} for doc_id in doc_ids]
         body = {"docs": docs_array}
 
-        resp = requests.post("{0}/{1}/_bulk_get".format(self.target.url, self.db), headers=self._headers, data=json.dumps(body))
+        resp = self._session.post("{0}/{1}/_bulk_get".format(self.target.url, self.db), data=json.dumps(body))
         log.debug("POST {}".format(resp.url))
         resp.raise_for_status()
 
@@ -63,10 +61,10 @@ class User:
 
     # GET /{db}/_all_docs
     def get_all_docs(self):
-        resp = requests.get("{0}/{1}/_all_docs".format(
+        resp = self._session.get("{0}/{1}/_all_docs".format(
             self.target.url,
             self.db,
-        ), headers=self._headers)
+        ))
         log.debug("GET {}".format(resp.url))
         resp.raise_for_status()
         return resp.json()
@@ -83,19 +81,19 @@ class User:
             rev_to_delete = doc_rev
         
         # delete that revision
-        resp = requests.delete("{0}/{1}/{2}?rev={3}".format(
+        resp = self._session.delete("{0}/{1}/{2}?rev={3}".format(
             self.target.url,
             self.db,
             doc_id,
             rev_to_delete,
-        ), headers=self._headers)
+        ))
 
         resp.raise_for_status()
         return resp.json()
     
     # PUT /{db}/{doc}
     # PUT /{db}/{local-doc-id}
-    def add_doc(self, doc_id=None, content=None, retries=False):
+    def add_doc(self, doc_id=None, content=None):
 
         doc_body = dict()
         doc_body["updates"] = 0
@@ -110,19 +108,13 @@ class User:
 
         if doc_id is None:
             # Use a POST and let sync_gateway generate an id
-            resp = requests.post("{0}/{1}/".format(self.target.url, self.db), headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+            resp = self._session.post("{0}/{1}/".format(self.target.url, self.db), data=body, timeout=settings.HTTP_REQ_TIMEOUT)
             log.debug("{0} POST {1}".format(self.name, resp.url))
         else:
             # If the doc id is specified, use PUT with doc_id in url
             doc_url = self.target.url + "/" + self.db + "/" + doc_id
 
-            if retries:
-                session = requests.Session()
-                adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
-                session.mount("http://", adapter)
-                resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-            else:
-                resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+            resp = self._session.put(doc_url, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
             log.debug("{0} PUT {1}".format(self.name, resp.url))
 
@@ -142,7 +134,7 @@ class User:
         return doc_id
 
     # POST /{db}/_bulk_docs
-    def add_bulk_docs(self, doc_ids, retries=False):
+    def add_bulk_docs(self, doc_ids):
 
         # Create docs
         doc_list = []
@@ -157,13 +149,7 @@ class User:
         docs["docs"] = doc_list
         data = json.dumps(docs)
 
-        if retries:
-            session = requests.Session()
-            adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
-            session.mount("http://", adapter)
-            resp = session.post("{0}/{1}/_bulk_docs".format(self.target.url, self.db), headers=self._headers, data=data, timeout=settings.HTTP_REQ_TIMEOUT)
-        else:
-            resp = requests.post("{0}/{1}/_bulk_docs".format(self.target.url, self.db), headers=self._headers, data=data, timeout=settings.HTTP_REQ_TIMEOUT)
+        resp = self._session.post("{0}/{1}/_bulk_docs".format(self.target.url, self.db), data=data, timeout=settings.HTTP_REQ_TIMEOUT)
 
         log.debug("{0} POST {1}".format(self.name, resp.url))
         resp.raise_for_status()
@@ -182,7 +168,7 @@ class User:
         # Return list of cache docs that were added
         return bulk_docs_ids
 
-    def add_docs(self, num_docs, bulk=False, name_prefix=None, retries=False):
+    def add_docs(self, num_docs, bulk=False, name_prefix=None):
 
         errors = list()
 
@@ -195,10 +181,7 @@ class User:
         if not bulk:
             with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
 
-                if retries:
-                    future_to_docs = {executor.submit(self.add_doc, doc, content=None, retries=True): doc for doc in doc_names}
-                else:
-                    future_to_docs = {executor.submit(self.add_doc, doc, content=None): doc for doc in doc_names}
+                future_to_docs = {executor.submit(self.add_doc, doc, content=None): doc for doc in doc_names}
 
                 for future in concurrent.futures.as_completed(future_to_docs):
                     doc = future_to_docs[future]
@@ -210,10 +193,7 @@ class User:
         else:
             with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
 
-                if retries:
-                    future = [executor.submit(self.add_bulk_docs, doc_names, retries=True)]
-                else:
-                    future = [executor.submit(self.add_bulk_docs, doc_names)]
+                future = [executor.submit(self.add_bulk_docs, doc_names)]
 
                 for f in concurrent.futures.as_completed(future):
                     try:
@@ -227,21 +207,21 @@ class User:
 
     def add_design_doc(self, doc_id, content):
         data = json.dumps(content)
-        r = requests.put("{0}/{1}/_design/{2}".format(self.target.url, self.db, doc_id), headers=self._headers, data=data)
+        r = self._session.put("{0}/{1}/_design/{2}".format(self.target.url, self.db, doc_id), data=data)
         log_request(r)
         log_response(r)
         r.raise_for_status()
 
     # GET /{db}/{doc}
     # PUT /{db}/{doc}
-    def update_doc(self, doc_id, num_revision=1, content=None, retries=False):
+    def update_doc(self, doc_id, num_revision=1, content=None):
 
         updated_docs = dict()
 
         for i in range(num_revision):
 
             doc_url = self.target.url + '/' + self.db + '/' + doc_id
-            resp = requests.get(doc_url, headers=self._headers, timeout=settings.HTTP_REQ_TIMEOUT)
+            resp = self._session.get(doc_url, timeout=settings.HTTP_REQ_TIMEOUT)
             log.debug("{0} GET {1}".format(self.name, resp.url))
 
             if resp.status_code == 200:
@@ -255,13 +235,7 @@ class User:
 
                 body = json.dumps(data)
 
-                if retries:
-                    session = requests.Session()
-                    adapter = requests.adapters.HTTPAdapter(max_retries=Retry(total=settings.MAX_HTTP_RETRIES, backoff_factor=settings.BACKOFF_FACTOR, status_forcelist=settings.ERROR_CODE_LIST))
-                    session.mount("http://", adapter)
-                    put_resp = session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
-                else:
-                    put_resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+                put_resp = self._session.put(doc_url, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
                 log.debug("{0} PUT {1}".format(self.name, resp.url))
 
@@ -284,7 +258,7 @@ class User:
 
         return updated_docs
                 
-    def update_docs(self, num_revs_per_doc=1, retries=False):
+    def update_docs(self, num_revs_per_doc=1,):
 
         errors = list()
 
@@ -293,10 +267,7 @@ class User:
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=settings.MAX_REQUEST_WORKERS) as executor:
 
-            if retries:
-                future_to_docs = {executor.submit(self.update_doc, doc_id, num_revs_per_doc, retries=True): doc_id for doc_id in self.cache.keys()}
-            else:
-                future_to_docs = {executor.submit(self.update_doc, doc_id, num_revs_per_doc): doc_id for doc_id in self.cache.keys()}
+            future_to_docs = {executor.submit(self.update_doc, doc_id, num_revs_per_doc): doc_id for doc_id in self.cache.keys()}
             
             for future in concurrent.futures.as_completed(future_to_docs):
                 doc = future_to_docs[future]
@@ -402,7 +373,7 @@ class User:
 
         data = json.dumps(params)
 
-        r = requests.post("{}/{}/_changes".format(self.target.url, self.db), headers=self._headers, data=data, timeout=settings.HTTP_REQ_TIMEOUT)
+        r = self._session.post("{}/{}/_changes".format(self.target.url, self.db), data=data, timeout=settings.HTTP_REQ_TIMEOUT)
         log.debug("{0} POST {1}".format(self.name, r.url))
         r.raise_for_status()
 
@@ -443,7 +414,7 @@ class User:
 
                 data = json.dumps(params)
 
-                r = requests.post("{}/{}/_changes".format(self.target.url, self.db), headers=self._headers, data=data)
+                r = self._session.post("{}/{}/_changes".format(self.target.url, self.db), data=data)
                 log.debug("{0} {1} {2}\n{3}\n{4}".format(
                         self.name,
                         r.request.method,
@@ -521,7 +492,7 @@ class User:
 
         data = json.dumps(params)
 
-        r = requests.post(url="{0}/{1}/_changes".format(self.target.url, self.db), headers=self._headers, data=data, stream=True)
+        r = self._session.post(url="{0}/{1}/_changes".format(self.target.url, self.db), data=data, stream=True)
         log.debug("{0} POST {1}".format(self.name, r.url))
 
         # Wait for continuous changes
