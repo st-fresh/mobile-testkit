@@ -16,9 +16,9 @@ def test_multiple_users_multiple_channels(conf):
     cluster = Cluster()
     mode = cluster.reset(config_path=conf)
 
-    num_docs_seth = 1000
-    num_docs_adam = 2000
-    num_docs_traun = 3000
+    num_docs_seth = 1
+    num_docs_adam = 1
+    num_docs_traun = 1
 
     sgs = cluster.sync_gateways
 
@@ -69,9 +69,9 @@ def test_muliple_users_single_channel(conf):
 
     sgs = cluster.sync_gateways
 
-    num_docs_seth = 1000
-    num_docs_adam = 2000
-    num_docs_traun = 3000
+    num_docs_seth = 1
+    num_docs_adam = 1
+    num_docs_traun = 1
 
     admin = Admin(sgs[0])
 
@@ -145,8 +145,8 @@ def test_single_user_single_channel(conf):
 
     sgs = cluster.sync_gateways
 
-    num_seth_docs = 7000
-    num_cbs_docs = 3000
+    num_seth_docs = 1
+    num_cbs_docs = 1
 
     admin = Admin(sgs[0])
     seth = admin.register_user(target=sgs[0], db="db", name="seth", password="password", channels=["ABC"])

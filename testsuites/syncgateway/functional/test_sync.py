@@ -81,7 +81,7 @@ def test_issue_1524(conf, num_docs):
 
 def test_sync_access_sanity(conf):
 
-    num_docs = 100
+    num_docs = 1
 
     log.info("Using conf: {}".format(conf))
 
@@ -122,7 +122,7 @@ def test_sync_access_sanity(conf):
 
 def test_sync_channel_sanity(conf):
 
-    num_docs_per_channel = 100
+    num_docs_per_channel = 1
     channels = ["ABC", "NBC", "CBS"]
 
     log.info("Using conf: {}".format(conf))
@@ -178,7 +178,7 @@ def test_sync_channel_sanity(conf):
 
 def test_sync_role_sanity(conf):
 
-    num_docs_per_channel = 100
+    num_docs_per_channel = 1
     tv_channels = ["ABC", "NBC", "CBS"]
 
     log.info("Using conf: {}".format(conf))
@@ -246,7 +246,7 @@ def test_sync_sanity(conf):
     mode = cluster.reset(config_path=conf)
 
     radio_stations = ["KMOW", "HWOD", "KDWB"]
-    number_of_docs_per_pusher = 5000
+    number_of_docs_per_pusher = 1
 
     admin = Admin(cluster.sync_gateways[0])
 
@@ -285,7 +285,7 @@ def test_sync_sanity_backfill(conf):
     mode = cluster.reset(config_path=conf)
 
     radio_stations = ["KMOW", "HWOD", "KDWB"]
-    number_of_docs_per_pusher = 5000
+    number_of_docs_per_pusher = 1
 
     admin = Admin(cluster.sync_gateways[0])
 
@@ -326,10 +326,10 @@ def test_sync_require_roles(conf):
     radio_stations = ["KMOW", "HWOD", "KDWB"]
     tv_stations = ["ABC", "CBS", "NBC"]
 
-    number_of_djs = 10
-    number_of_vjs = 10
+    number_of_djs = 1
+    number_of_vjs = 1
 
-    number_of_docs_per_pusher = 100
+    number_of_docs_per_pusher = 1
 
     admin = Admin(cluster.sync_gateways[0])
 

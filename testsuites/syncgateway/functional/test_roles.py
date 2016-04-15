@@ -17,10 +17,10 @@ def test_roles_sanity(conf):
     radio_stations = ["KMOW", "HWOD", "KDWB"]
     tv_stations = ["ABC", "CBS", "NBC"]
 
-    number_of_djs = 10
-    number_of_vjs = 10
+    number_of_djs = 1
+    number_of_vjs = 1
 
-    number_of_docs_per_pusher = 500
+    number_of_docs_per_pusher = 1
 
     admin = Admin(cluster.sync_gateways[0])
 

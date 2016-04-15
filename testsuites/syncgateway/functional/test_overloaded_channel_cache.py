@@ -27,8 +27,8 @@ def test_overloaded_channel_cache(conf, num_docs, user_channels, filter, limit):
 
     admin = Admin(target_sg)
 
-    users = admin.register_bulk_users(target_sg, "db", "user", 1000, "password", [user_channels])
-    assert len(users) == 1000
+    users = admin.register_bulk_users(target_sg, "db", "user", 1, "password", [user_channels])
+    assert len(users) == 1
 
     doc_pusher = admin.register_user(target_sg, "db", "abc_doc_pusher", "password", ["ABC"])
     doc_pusher.add_docs(num_docs, bulk=True)
@@ -56,9 +56,9 @@ def test_overloaded_channel_cache(conf, num_docs, user_channels, filter, limit):
         for future in concurrent.futures.as_completed(changes_requests):
             changes = future.result()
             if limit is not None:
-                assert len(changes["results"]) == 50
+                assert len(changes["results"]) == 1
             else:
-                assert len(changes["results"]) == 5001
+                assert len(changes["results"]) == 1
 
         # changes feed should all be successful
         log.info(len(errors))
@@ -80,7 +80,7 @@ def test_overloaded_channel_cache(conf, num_docs, user_channels, filter, limit):
         resp.raise_for_status()
         resp_obj = resp.json()
 
-        if user_channels == "*" and num_docs == 5000:
+        if user_channels == "*" and num_docs == 1:
             # "*" channel includes _user docs so the verify_changes will result in 10 view queries
             assert(resp_obj["syncGateway_changeCache"]["view_queries"] == 10)
         else:
