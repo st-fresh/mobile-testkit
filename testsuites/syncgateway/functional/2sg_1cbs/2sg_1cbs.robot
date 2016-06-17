@@ -9,18 +9,12 @@ Library     ${KEYWORDS}/Logging.py
 Library     ../test_bucket_shadow.py
 Library     ../test_sg_replicate.py
 
-Suite Setup     Suite Setup
-Suite Teardown  Suite Teardown
-
 Test Setup  Setup Test
-
 Test Teardown   Test Teardown
 
 Test Timeout    10 minutes
 
 *** Variables ***
-${CLUSTER_CONFIG}           ${CLUSTER_CONFIGS}/2sg_1cbs
-${SYNC_GATEWAY_CONFIG}      ${SYNC_GATEWAY_CONFIGS}/sync_gateway_default_functional_tests_cc.json
 
 *** Test Cases ***
 # Cluster has been setup
@@ -78,19 +72,6 @@ Test Replication Config
 *** Keywords ***
 Setup Test
     Start Packet Capture
-
-Suite Setup
-    Log  Setting up suite ...  console=True
-    Set Environment Variable  CLUSTER_CONFIG  ${CLUSTER_CONFIG}
-
-    Provision Cluster
-    ...  server_version=${SERVER_VERSION}
-    ...  sync_gateway_version=${SYNC_GATEWAY_VERSION}
-    ...  sync_gateway_config=${SYNC_GATEWAY_CONFIG}
-
-
-Suite Teardown
-    Log  Tearing down suite ...  console=True
 
 Test Teardown
     Log  Tearing down test ...  console=True
