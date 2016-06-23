@@ -92,6 +92,10 @@ Start Net LiteServ
     [Arguments]  ${version}  ${host}  ${port}  ${storage_engine}
     [Timeout]       1 minute
     ${binary_path} =  Get LiteServ Binary Path  platform=net  version=${version}
+
+    ${mono_version} =  Run Process  mono  --version
+    Log  ${mono_version.stdout}  console=True
+
     Start Process   mono  ${binary_path}  --port\=${port}
     ...             alias=liteserv-net
     ...             shell=True
