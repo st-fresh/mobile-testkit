@@ -4,6 +4,7 @@ import os
 from optparse import OptionParser
 
 from ansible_runner import AnsibleRunner
+from keywords.utils import log_info
 
 
 class SyncGatewayConfig:
@@ -42,12 +43,16 @@ class SyncGatewayConfig:
         return output
 
     def sync_gateway_base_url_and_package(self):
-        if self._version_number == "1.1.0" or self._build_number == "1.1.1":
-            print("Version unsupported in provisioning.")
-            raise ValueError("Unsupport version of sync_gateway")
+        if self._version_number == "1.1.0" or self._version_number == "1.1.1":
             # http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/release/1.1.1/1.1.1-10/couchbase-sync-gateway-enterprise_1.1.1-10_x86_64.rpm
-            # base_url = "http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/release/{0}/{1}-{2}".format(version, version, build)
-            # sg_package_name  = "couchbase-sync-gateway-enterprise_{0}-{1}_x86_64.rpm".format(version, build)
+
+            log_info("Caution, sync_gateway: {} is does not include sg_accel and will fail for many sync_gateway functional tests".format(self._version_number))
+
+            base_url = "http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/release/{0}/{1}-{2}".format(version, version, build)
+            sg_package_name  = "couchbase-sync-gateway-enterprise_{0}-{1}_x86_64.rpm".format(version, build)
+
+            # No sg_accel pre 1.2
+            accel_package_name = ""
         else:
             # http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/1.2.0/1.2.0-6/couchbase-sync-gateway-enterprise_1.2.0-6_x86_64.rpm
             base_url = "http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/{0}/{1}-{2}".format(self._version_number, self._version_number, self._build_number)
