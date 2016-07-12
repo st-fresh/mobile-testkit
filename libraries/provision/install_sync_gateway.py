@@ -51,7 +51,7 @@ class SyncGatewayConfig:
             base_url = "http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/release/{0}/{1}-{2}".format(
                 self._version_number, self._version_number, self._build_number
             )
-            sg_package_name  = "couchbase-sync-gateway-enterprise_{0}-{1}_x86_64.rpm".format(version, build)
+            sg_package_name  = "couchbase-sync-gateway-enterprise_{0}-{1}_x86_64.rpm".format(self._version_number, self._build_number)
 
             # No sg_accel pre 1.2
             accel_package_name = ""
