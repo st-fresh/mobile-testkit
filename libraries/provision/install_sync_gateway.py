@@ -48,7 +48,9 @@ class SyncGatewayConfig:
 
             log_info("Caution, sync_gateway: {} is does not include sg_accel and will fail for many sync_gateway functional tests".format(self._version_number))
 
-            base_url = "http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/release/{0}/{1}-{2}".format(version, version, build)
+            base_url = "http://latestbuilds.hq.couchbase.com/couchbase-sync-gateway/release/{0}/{1}-{2}".format(
+                self._version_number, self._version_number, self._build_number
+            )
             sg_package_name  = "couchbase-sync-gateway-enterprise_{0}-{1}_x86_64.rpm".format(version, build)
 
             # No sg_accel pre 1.2
