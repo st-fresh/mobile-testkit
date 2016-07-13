@@ -139,11 +139,23 @@ class SyncGateway:
         assert status == 0, "Could not start sync_gateway"
 
     def stop_sync_gateway(self, url):
+
         target = hostname_for_url(url)
+
         logging.info("Shutting down sync_gateway on {} ...".format(target))
         ansible_runner = AnsibleRunner()
-        status = ansible_runner.run_ansible_playbook(
-            "stop-sync-gateway.yml",
-            subset=target
-        )
+
+        url = url.replace("http://", "")
+        url = url.replace(":4984", "")
+        sg_version, _ = get_sync_gateway_version(url)
+        if sg_version.startswith("1.1.1"):
+            status = ansible_runner.run_ansible_playbook(
+                "stop-sync-gateway-legacy.yml",
+                subset=target
+            )
+        else:
+            status = ansible_runner.run_ansible_playbook(
+                "stop-sync-gateway.yml",
+                subset=target
+            )
         assert status == 0, "Could not stop sync_gateway"
