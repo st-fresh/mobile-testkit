@@ -33,19 +33,31 @@ def install_nginx(cluster_config):
     #   server 192.168.33.12:4984;
     #  }
     upstream_definition = ""
+    upstream_admin_definition = ""
+
     for sg in topology["sync_gateways"]:
-        # string http:// to adhere to expected format for nginx.conf
+        # strip http:// to adhere to expected format for nginx.conf
         ip_port = sg["public"].replace("http://", "")
         upstream_definition += "server {};\n".format(ip_port)
 
-    log_info("Upstream definition: ")
+    for sg in topology["sync_gateways"]:
+        # strip http:// to adhere to expected format for nginx.conf
+        ip_port = sg["admin"].replace("http://", "")
+        upstream_admin_definition += "server {};\n".format(ip_port)
+
+    log_info("Upstream definitions: ")
+    log_info(upstream_definition)
+
+    log_info("Upstream admin definitions: ")
     log_info(upstream_definition)
 
     ansible_runner = AnsibleRunner()
     status = ansible_runner.run_ansible_playbook(
         "install-nginx.yml",
         extra_vars={
-            "upstream_sync_gatways": upstream_definition
+            "upstream_sync_gatways": upstream_definition,
+            "upstream_sync_gatway_admins": upstream_admin_definition
+
         }
     )
 
