@@ -1,8 +1,11 @@
-from locust import HttpLocust, TaskSet, task
+from libraries.testkit.cluster import Cluster
 
 import json
+import uuid
 
-from locust import HttpLocust, TaskSet
+import requests
+
+from locust import HttpLocust, TaskSet, task
 
 class UserBehavior(TaskSet):
 
@@ -12,12 +15,27 @@ class UserBehavior(TaskSet):
 
         self.client.headers.update({"Content-Type": "application/json"})
 
+        user_id = "user_{}".format(uuid.uuid4())
         data = {
-            "name": "seth_{}".format(self.user_id),
+            "name": user_id,
             "password": "password",
-            "admin_channels": ["abc, nbc"]
+            "admin_channels": ["abc", "nbc"]
         }
-        self.client.post(":4985/db/_user", data)
+
+        # Add user
+        self.client.put(":4985/db/_user/{}".format(user_id), data=json.dumps(data))
+
+        data = {
+            "name": user_id,
+            "ttl": 500
+        }
+        resp = self.client.post(":4985/db/_session", data=json.dumps(data))
+        session_info = resp.json()
+
+        requests.utils.add_dict_to_cookiejar(
+            self.client.cookies,
+            {"SyncGatewaySession": session_info["session_id"]}
+        )
 
     def on_start(self):
         self.login()
@@ -43,7 +61,7 @@ class UserBehavior(TaskSet):
 
 class WebsiteUser(HttpLocust):
 
-    host = "http://192.168.33.11"
+    host = "http://192.168.33.13"
 
     task_set = UserBehavior
     min_wait = 5000
