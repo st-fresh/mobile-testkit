@@ -7,12 +7,9 @@ import requests
 
 from locust import HttpLocust, TaskSet, task, events
 
-class UserBehavior(TaskSet):
+class WriteThroughPut(TaskSet):
 
-    user_id = 0
-
-    def login(self):
-
+    def on_start(self):
         self.client.headers.update({"Content-Type": "application/json"})
 
         user_id = "user_{}".format(uuid.uuid4())
@@ -37,32 +34,23 @@ class UserBehavior(TaskSet):
             {"SyncGatewaySession": session_info["session_id"]}
         )
 
-    def on_start(self):
-        self.login()
-
-
-    @task(10)
+    @task
     def add_doc(self):
-
         data = {
             "prop1": "ehh"
         }
-
         self.client.post(":4984/db/", json.dumps(data))
 
-    @task(1)
-    def admin_root(self):
-        self.client.get(":4984/")
 
+class SyncGatewayPusher(HttpLocust):
 
-
-class WebsiteUser(HttpLocust):
+    weight = 1
 
     host = "http://192.168.33.13"
 
-    task_set = UserBehavior
-    min_wait = 5000
-    max_wait = 9000
+    task_set = WriteThroughPut
+    min_wait = 1000
+    max_wait = 5000
 
 
 stats = {
@@ -75,12 +63,13 @@ def on_request_success(request_type, name, response_time, response_length):
     """
     Event handler that get triggered on every successful request
     """
-    if name == "/db/":
-        stats["add_doc_time_total"] += response_time
-        stats["add_doc_num"] += 1
-        stats["add_docs_average_time"] = stats["add_doc_time_total"] / stats["add_doc_num"]
-
-    print(stats)
+    pass
+    # if name == "/db/":
+    #     stats["add_doc_time_total"] += response_time
+    #     stats["add_doc_num"] += 1
+    #     stats["add_docs_average_time"] = stats["add_doc_time_total"] / stats["add_doc_num"]
+    #
+    # print(stats)
 
 # Hook up the event listeners
 events.request_success += on_request_success
