@@ -1,15 +1,19 @@
 import sys
 import subprocess
+import os
+
 from optparse import OptionParser
-
-
 
 if __name__ == "__main__":
     usage = """usage: WriteThoughputRunner.py
     --num-writers=1000
     --num-channels=100
+    --num-channels-per-doc=1
     --total-docs=10000
     --doc-size=4000
+
+    Create 0-99 channels for total dataset. Each doc is assigned 1 channel in
+    this range.
     """
 
     parser = OptionParser(usage=usage)
@@ -20,7 +24,7 @@ if __name__ == "__main__":
 
     parser.add_option("", "--num-channels",
                       action="store", type="int", dest="num_channels",
-                      help="number of channels")
+                      help="number of channels that docs ")
 
     parser.add_option("", "--total-docs",
                       action="store", type="int", dest="total_docs",
@@ -51,6 +55,12 @@ if __name__ == "__main__":
     print("clients: {}".format(clients))
     print("num_request: {}\n".format(num_request))
 
+    print("*** Starting statsd ***")
+    print("Starting Server on :8125 ...")
+
+    # Set needed environment variables
+   #os.environ["LOCUST_NUM_CHANNELS"] = opts.num_channels
+
     output = subprocess.check_output(
         [
             "locust",
@@ -61,13 +71,14 @@ if __name__ == "__main__":
             "--num-request", num_request,
             "--logfile", "test.log",
             "-f", "testsuites/syncgateway/performance/locust/WriteThroughputDef.py"
-        ],
-        stderr=subprocess.STDOUT
+        ]
+        #stderr=subprocess.STDOUT
     )
 
     # Write locust results
     with open("WriteThroughPut.txt", "w") as f:
         f.write(output)
 
-
+    # Clean up environment variables
+    del os.environ["LOCUST_NUM_CHANNELS"]
 
