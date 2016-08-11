@@ -49,7 +49,7 @@ def install_nginx(cluster_config):
     log_info(upstream_definition)
 
     log_info("Upstream admin definitions: ")
-    log_info(upstream_definition)
+    log_info(upstream_admin_definition)
 
     ansible_runner = AnsibleRunner()
     status = ansible_runner.run_ansible_playbook(
