@@ -4,6 +4,26 @@ import os
 
 from optparse import OptionParser
 
+def validate_opts(num_writers, num_channels, num_channels_per_doc, total_docs, doc_size):
+
+    assert num_writers >= 0, "'num_writers' should be >= 0"
+    assert num_channels >= 0, "'num_channels' should be >= 0"
+    assert num_channels_per_doc >= 0, "'num_channels_per_doc' should be >= 0"
+    assert total_docs >= 0, "'total_docs' should be >= 0"
+    assert doc_size >= 0, "'doc_size' should be >= 0"
+
+    if num_channels_per_doc > num_channels:
+        raise ValueError("'num_channels_per_doc' cannot exceed the number of 'num_channels'")
+
+    # Make sure all channels are used
+    # Ex. 100 writers, 10 channels, 10 writers with 10 channel
+    assert num_writers % num_channels == 0, "'num_writers' should be a multiple of 'num_channels'"
+    assert num_channels % num_channels_per_doc == 0, "'num_channels' should be a multiple of 'num_channels_per_doc'"
+
+    # TODO: Make sure distribution of channels is equal
+    # Ex. 20 writers, 10 channels, 2 channels per doc
+    # Make sure sets 1-5 are equally represented in test case
+
 if __name__ == "__main__":
     usage = """usage: WriteThoughputRunner.py
     --num-writers=1000
@@ -23,11 +43,11 @@ if __name__ == "__main__":
                       help="number of writers")
 
     parser.add_option("", "--num-channels",
-                      action="store", type="string", dest="num_channels",
+                      action="store", type="int", dest="num_channels",
                       help="number of channels that docs ")
 
     parser.add_option("", "--num-channels-per-doc",
-                      action="store", type="string", dest="num_channels_per_doc",
+                      action="store", type="int", dest="num_channels_per_doc",
                       help="number of channels that docs ")
 
     parser.add_option("", "--total-docs",
@@ -49,6 +69,14 @@ if __name__ == "__main__":
     print("total_docs: {}".format(opts.total_docs))
     print("doc_size: {}\n".format(opts.doc_size))
 
+    validate_opts(
+        num_writers=opts.num_writers,
+        num_channels=opts.num_channels,
+        num_channels_per_doc=opts.num_channels_per_doc,
+        total_docs=opts.total_docs,
+        doc_size=opts.doc_size
+    )
+
     clients = str(opts.num_writers)
 
     # POST _user + POST + _session = opts.num_writers * 2 requests
@@ -61,27 +89,43 @@ if __name__ == "__main__":
     print("num_request: {}\n".format(num_request))
 
     print("*** Starting statsd ***")
-    print("Starting Server on :8125 ...")
+    print("Starting Server on :8125 ...\n")
+
+    print("*** Setting up environment ***\n")
 
     # Set needed environment variables
-    os.environ["LOCUST_NUM_CHANNELS"] = opts.num_channels
-    os.environ["LOCUST_NUM_CHANNELS_PER_DOC"] = opts.num_channels_per_doc
+    os.environ["LOCUST_NUM_CHANNELS"] = str(opts.num_channels)
+    os.environ["LOCUST_NUM_CHANNELS_PER_DOC"] = str(opts.num_channels_per_doc)
+
+    scenario = "WriteThroughputDef.py"
+
+    print("*** Running Locust ***")
+    print("Environment:")
+    print("LOCUST_NUM_CHANNELS: {}".format(os.environ["LOCUST_NUM_CHANNELS"]))
+    print("LOCUST_NUM_CHANNELS_PER_DOC: {}".format(os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]))
+    print("Scenario: {}\n".format(scenario))
 
     output = subprocess.check_output(
         [
             "locust",
             "--no-web",
+            "--only-summary",
+            "--host", "http://192.168.33.11",
             "--clients", clients,
             "--hatch-rate", "50",
             "--num-request", num_request,
-            "-f", "testsuites/syncgateway/performance/locust/WriteThroughputDef.py"
-        ]
-        #stderr=subprocess.STDOUT
+            "-f", "testsuites/syncgateway/performance/locust/{}".format(scenario)
+        ],
+        stderr=subprocess.STDOUT
     )
+
+    print("*** Writing Summary ***\n")
 
     # Write locust results
     with open("WriteThroughPut.txt", "w") as f:
         f.write(output)
+
+    print("*** Tearing down environment ***\n")
 
     # Clean up environment variables
     del os.environ["LOCUST_NUM_CHANNELS"]
