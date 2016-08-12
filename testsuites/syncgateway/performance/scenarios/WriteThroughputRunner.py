@@ -23,7 +23,11 @@ if __name__ == "__main__":
                       help="number of writers")
 
     parser.add_option("", "--num-channels",
-                      action="store", type="int", dest="num_channels",
+                      action="store", type="string", dest="num_channels",
+                      help="number of channels that docs ")
+
+    parser.add_option("", "--num-channels-per-doc",
+                      action="store", type="string", dest="num_channels_per_doc",
                       help="number of channels that docs ")
 
     parser.add_option("", "--total-docs",
@@ -41,6 +45,7 @@ if __name__ == "__main__":
     print("*** Write Thoughput ***")
     print("num_writers: {}".format(opts.num_writers))
     print("num_channels: {}".format(opts.num_channels))
+    print("num_channels_per_doc: {}".format(opts.num_channels_per_doc))
     print("total_docs: {}".format(opts.total_docs))
     print("doc_size: {}\n".format(opts.doc_size))
 
@@ -59,17 +64,16 @@ if __name__ == "__main__":
     print("Starting Server on :8125 ...")
 
     # Set needed environment variables
-   #os.environ["LOCUST_NUM_CHANNELS"] = opts.num_channels
+    os.environ["LOCUST_NUM_CHANNELS"] = opts.num_channels
+    os.environ["LOCUST_NUM_CHANNELS_PER_DOC"] = opts.num_channels_per_doc
 
     output = subprocess.check_output(
         [
             "locust",
             "--no-web",
-            "--only-summary",
             "--clients", clients,
             "--hatch-rate", "50",
             "--num-request", num_request,
-            "--logfile", "test.log",
             "-f", "testsuites/syncgateway/performance/locust/WriteThroughputDef.py"
         ]
         #stderr=subprocess.STDOUT
@@ -81,4 +85,5 @@ if __name__ == "__main__":
 
     # Clean up environment variables
     del os.environ["LOCUST_NUM_CHANNELS"]
+    del os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]
 

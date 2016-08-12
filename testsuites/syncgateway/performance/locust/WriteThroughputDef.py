@@ -2,6 +2,7 @@ from libraries.testkit.cluster import Cluster
 
 import json
 import uuid
+import os
 
 import statsd
 import requests
@@ -9,18 +10,39 @@ import requests
 from locust import HttpLocust, TaskSet, task, events
 
 # Start statsd client
-stats_client = statsd.StatsClient("localhost", 8125)
+stats_client = statsd.StatsClient("localhost", 8125, prefix="locust")
+
 
 class WriteThroughPut(TaskSet):
+
+    channel_index = 0
 
     def on_start(self):
         self.client.headers.update({"Content-Type": "application/json"})
 
+        # build channels based on the LOCUST_NUM_CHANNELS and LOCUST_NUM_CHANNELS_PER_DOC
+        num_channels = int(os.environ["LOCUST_NUM_CHANNELS"])
+        num_channels_per_doc = int(os.environ["LOCUST_NUM_CHANNELS_PER_DOC"])
+
+        print("LOCUST_NUM_CHANNELS: {}".format(num_channels))
+        print("LOCUST_NUM_CHANNELS_PER_DOC: {}".format(num_channels_per_doc))
+
+        self.channels = []
+        for _ in range(num_channels_per_doc):
+            # Take the current channel_index and mod by the num_channels
+            self.channels.append("ch_{}".format(self.channel_index % num_channels))
+
+            # HACK?: Update static class variable, so that the next locust with
+            # use this when seeding channels
+            WriteThroughPut.channel_index += 1
+
         user_id = "user_{}".format(uuid.uuid4())
+        print("{} -> channels: {}".format(user_id, self.channels))
+
         data = {
             "name": user_id,
             "password": "password",
-            "admin_channels": ["abc", "nbc"]
+            "admin_channels": self.channels
         }
 
         # Add user
@@ -41,7 +63,8 @@ class WriteThroughPut(TaskSet):
     @task
     def add_doc(self):
         data = {
-            "prop1": "ehh"
+            "channels": self.channels,
+            "sample_prop" : "sample_value"
         }
         resp = self.client.post(":4984/db/", json.dumps(data))
 
@@ -81,7 +104,6 @@ stats = {
     "add_doc_time_total" : 0,
     "add_doc_num": 0,
     "add_docs_average_time": 0,
-    "counter": 0
 }
 
 def on_request_success(request_type, name, response_time, response_length):
@@ -90,19 +112,11 @@ def on_request_success(request_type, name, response_time, response_length):
 
     Process RTT
     """
-
-    stats["counter"] += 1
-    # Write time to statsd
-    #stats_client.timing("response", response_time)
-    stats_client.incr('pyinc', count=stats["counter"])  # Increment the 'foo' counter
-    stats_client.timing('pyresponse', response_time)  # Increment the 'foo' counter
-
-    # if name == "/db/":
-    #     stats["add_doc_time_total"] += response_time
-    #     stats["add_doc_num"] += 1
-    #     stats["add_docs_average_time"] = stats["add_doc_time_total"] / stats["add_doc_num"]
-    #
-    # print(stats)
+    # Write response_time to statsd
+    if name.startswith("/db/_user/"):
+        stats_client.timing('user_add_response_time', response_time)
+    elif name.startswith("/db/"):
+        stats_client.timing('doc_add_response_time', response_time)
 
 # Hook up the event listeners
 events.request_success += on_request_success
