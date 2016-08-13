@@ -105,27 +105,32 @@ if __name__ == "__main__":
     print("LOCUST_NUM_CHANNELS_PER_DOC: {}".format(os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]))
     print("Scenario: {}\n".format(scenario))
 
-    output = subprocess.check_output(
-        [
-            "locust",
-            "--no-web",
-            "--only-summary",
-            "--host", "http://192.168.33.11",
-            "--clients", clients,
-            "--hatch-rate", "50",
-            "--num-request", num_request,
-            "-f", "testsuites/syncgateway/performance/locust/{}".format(scenario)
-        ],
-        stderr=subprocess.STDOUT
-    )
-
-    print("*** Writing Summary ***\n")
-
-    # Write locust results
     with open("WriteThroughPut.txt", "w") as f:
-        f.write(output)
+        locust_proc = subprocess.Popen(
+            [
+                "locust",
+                "--no-web",
+                "--loglevel", "DEBUG",
+                "--only-summary",
+                "--host", "http://192.168.33.11",
+                "--clients", clients,
+                "--hatch-rate", "50",
+                "--num-request", num_request,
+                "-f", "testsuites/syncgateway/performance/locust/{}".format(scenario)
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
+        )
+        for line in iter(locust_proc.stdout.readline, ''):
+            sys.stdout.write(line)
+            f.write(line)
 
     print("*** Tearing down environment ***\n")
+
+    # Parse Values
+    with open("WriteThroughPut.txt") as f:
+        output = f.read()
+        print(output)
 
     # Clean up environment variables
     del os.environ["LOCUST_NUM_CHANNELS"]
