@@ -54,6 +54,11 @@ results/dbs/net/*
 results/logs/*
 !results/logs/README.md
 
+!results/perf
+!results/perf/syncgateway
+results/perf/syncgateway/*
+!results/perf/syncgateway/README.md
+
 resources/cluster_configs/*
 !resources/cluster_configs/README.md
 resources/pool.json

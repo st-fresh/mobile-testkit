@@ -4,8 +4,11 @@ import os
 
 from optparse import OptionParser
 
-def validate_opts(num_writers, num_channels, num_channels_per_doc, total_docs, doc_size):
+from keywords.constants import RESULTS_DIR
 
+def validate_opts(target, num_writers, num_channels, num_channels_per_doc, total_docs, doc_size):
+
+    assert target is not None, "Make sure you have defined a sync_gateway target for locust, ex. ('http://192.168.33.11')"
     assert num_writers >= 0, "'num_writers' should be >= 0"
     assert num_channels >= 0, "'num_channels' should be >= 0"
     assert num_channels_per_doc >= 0, "'num_channels_per_doc' should be >= 0"
@@ -26,6 +29,7 @@ def validate_opts(num_writers, num_channels, num_channels_per_doc, total_docs, d
 
 if __name__ == "__main__":
     usage = """usage: WriteThoughputRunner.py
+    --target=http://192.168.33.11
     --num-writers=1000
     --num-channels=100
     --num-channels-per-doc=1
@@ -37,6 +41,10 @@ if __name__ == "__main__":
     """
 
     parser = OptionParser(usage=usage)
+
+    parser.add_option("", "--target",
+                      action="store", type="string", dest="target", default=None,
+                      help="target to point locust at")
 
     parser.add_option("", "--num-writers",
                       action="store", type="int", dest="num_writers",
@@ -70,6 +78,7 @@ if __name__ == "__main__":
     print("doc_size: {}\n".format(opts.doc_size))
 
     validate_opts(
+        target=opts.target,
         num_writers=opts.num_writers,
         num_channels=opts.num_channels,
         num_channels_per_doc=opts.num_channels_per_doc,
@@ -105,14 +114,15 @@ if __name__ == "__main__":
     print("LOCUST_NUM_CHANNELS_PER_DOC: {}".format(os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]))
     print("Scenario: {}\n".format(scenario))
 
-    with open("WriteThroughPut.txt", "w") as f:
+    results_path = "{}/perf/syncgateway/WriteThroughPut.txt".format(RESULTS_DIR)
+    with open(results_path, "w") as f:
         locust_proc = subprocess.Popen(
             [
                 "locust",
                 "--no-web",
                 "--loglevel", "DEBUG",
                 "--only-summary",
-                "--host", "http://192.168.33.11",
+                "--host", opts.target,
                 "--clients", clients,
                 "--hatch-rate", "50",
                 "--num-request", num_request,
@@ -128,7 +138,7 @@ if __name__ == "__main__":
     print("*** Tearing down environment ***\n")
 
     # Parse Values
-    with open("WriteThroughPut.txt") as f:
+    with open(results_path) as f:
         output = f.read()
         print(output)
 
