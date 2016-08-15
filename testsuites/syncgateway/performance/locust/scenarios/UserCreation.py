@@ -28,6 +28,8 @@ USER_AUTH_DICT = {}
 
 LOCUSTS_DONE = 0
 
+USER_SESSION_INFO_PATH = "user_tmp"
+
 class UserCreation(TaskSet):
 
     num_clients = int(os.environ["LOCUST_NUM_CLIENTS"])
@@ -97,8 +99,9 @@ class UserCreation(TaskSet):
         LOCUSTS_DONE += 1
 
         if LOCUSTS_DONE == self.num_clients:
-            with open("users_tmp", "w") as f:
-                f.write(json.dumps(USER_AUTH_DICT, indent=4))
+            # Write user / session info to file
+            with open(USER_SESSION_INFO_PATH, "w") as f:
+                f.write(json.dumps(USER_AUTH_DICT))
 
         self.interrupt()
 

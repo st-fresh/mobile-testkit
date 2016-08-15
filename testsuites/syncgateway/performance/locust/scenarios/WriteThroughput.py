@@ -14,16 +14,9 @@ from keywords.utils import prepare_locust_client
 stats_client = statsd.StatsClient("localhost", 8125, prefix="locust")
 
 USER_INDEX = 0
-
-def get_channel_index():
-    return CHANNEL_INDEX
-
-def incr_channel_index():
-    global CHANNEL_INDEX
-    CHANNEL_INDEX += 1
+USER_SESSION_INFO = json.loads(os.environ["LOCUST_USER_SESSION_INFO"])
 
 class WriteThroughPut(TaskSet):
-
 
     def on_start(self):
         """
@@ -41,26 +34,24 @@ class WriteThroughPut(TaskSet):
         """
         prepare_locust_client(self.client)
 
-        # Create sessions
-        data = {
-            "name": user_id,
-            "ttl": 500
-        }
-        resp = self.client.post(":4985/db/_session", data=json.dumps(data))
-        session_info = resp.json()
+        global USER_INDEX
+        user_id = "user_{}".format(USER_INDEX)
+        USER_INDEX += 1
 
+        # Store Cookie auth for user
         requests.utils.add_dict_to_cookiejar(
             self.client.cookies,
-            {"SyncGatewaySession": session_info["session_id"]}
+            USER_SESSION_INFO[user_id]
         )
 
     @task
     def add_doc(self):
         data = {
-            "channels": self.channels,
+            "channels": "TESTS",
             "sample_prop" : "sample_value"
         }
         resp = self.client.post(":4984/db/", json.dumps(data))
+        print(resp.status_code)
 
 
 class SyncGatewayPusher(HttpLocust):
@@ -71,23 +62,3 @@ class SyncGatewayPusher(HttpLocust):
     min_wait = 100
     max_wait = 1000
 
-stats = {
-    "add_doc_time_total" : 0,
-    "add_doc_num": 0,
-    "add_docs_average_time": 0,
-}
-
-def on_request_success(request_type, name, response_time, response_length):
-    """
-    Event handler that get triggered on every successful request
-
-    Process RTT
-    """
-    # Write response_time to statsd
-    if name.startswith("/db/_user/"):
-        stats_client.timing('user_add_response_time', response_time)
-    elif name.startswith("/db/"):
-        stats_client.timing('doc_add_response_time', response_time)
-
-# Hook up the event listeners
-events.request_success += on_request_success

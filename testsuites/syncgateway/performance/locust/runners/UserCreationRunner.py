@@ -2,15 +2,25 @@ import sys
 import subprocess
 import os
 import time
+import json
 
 from optparse import OptionParser
 
 from keywords.constants import RESULTS_DIR
 from keywords.ClusterKeywords import ClusterKeywords
 
+from locust_runner import run_locust_scenario
+
+def validate_users(num_writers, user_session_info):
+    user_session_dict = json.loads(user_session_info)
+    for i in range(num_writers):
+        user = "user_{}".format(i)
+        assert user in user_session_dict
+        assert len(user_session_dict[user]["SyncGatewaySession"]) == 40
+
 def create_users(target, num_writers, num_channels, num_channels_per_doc):
 
-    start = time.time()
+
 
     clients = str(num_writers)
 
@@ -31,51 +41,34 @@ def create_users(target, num_writers, num_channels, num_channels_per_doc):
     os.environ["LOCUST_NUM_CLIENTS"] = str(clients)
     os.environ["LOCUST_NUM_CHANNELS"] = str(num_channels)
     os.environ["LOCUST_NUM_CHANNELS_PER_DOC"] = str(num_channels_per_doc)
+    os.environ["LOCUST_USER_SESSION_INFO_PATH"] = "users_tmp"
 
-    scenario = "UserCreation.py"
+    scenario = "UserCreation"
 
     print("*** Running Locust: {} ***".format(scenario))
     print("Environment:")
     print("LOCUST_NUM_CHANNELS: {}".format(os.environ["LOCUST_NUM_CHANNELS"]))
     print("LOCUST_NUM_CHANNELS_PER_DOC: {}".format(os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]))
 
-    results_path = "{}/perf/syncgateway/UserCreation.txt".format(RESULTS_DIR)
-
-    with open(results_path, "w") as f:
-        locust_proc = subprocess.Popen(
-            [
-                "locust",
-                "--no-web",
-                "--loglevel", "INFO",
-                "--only-summary",
-                "--host", target,
-                "--clients", clients,
-                "--hatch-rate", "50",
-                "--num-request", num_request,
-                "-f", "testsuites/syncgateway/performance/locust/scenarios/{}".format(scenario)
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
-        )
-
-        for line in iter(locust_proc.stdout.readline, ''):
-            sys.stdout.write(line)
-            f.write(line)
+    # Run and time scenario
+    start = time.time()
+    run_locust_scenario(
+        name=scenario,
+        target=target,
+        clients=clients,
+        num_request=num_request
+    )
+    user_creation_time = time.time() - start
+    print("User creation took: {}s".format(user_creation_time))
 
     print("*** Tearing down environment ***\n")
-
-    # Parse Values
-    with open(results_path) as f:
-        output = f.read()
-        print(output)
-
     # Clean up environment variables
     del os.environ["LOCUST_NUM_CLIENTS"]
     del os.environ["LOCUST_NUM_CHANNELS"]
     del os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]
+    del os.environ["LOCUST_USER_SESSION_INFO_PATH"]
 
-    user_creation_time = time.time() - start
-    print("User creation took: {}s".format(user_creation_time))
+
 
 def validate_opts(target, num_writers, num_channels, num_channels_per_doc):
 
@@ -102,10 +95,6 @@ if __name__ == "__main__":
     Create 0-99 channels for total dataset. Each doc is assigned 1 channel in
     this range.
     """
-
-    cluster = ClusterKeywords()
-    cluster.reset_cluster("resources/sync_gateway_configs/performance/sync_gateway_default_performance_cc.json")
-
     parser = OptionParser(usage=usage)
 
     parser.add_option("", "--target",
@@ -128,14 +117,17 @@ if __name__ == "__main__":
 
     (opts, args) = parser.parse_args(arg_parameters)
 
-
-
     validate_opts(
         target=opts.target,
         num_writers=opts.num_writers,
         num_channels=opts.num_channels,
         num_channels_per_doc=opts.num_channels_per_doc
     )
+
+    cluster = ClusterKeywords()
+    config = "resources/sync_gateway_configs/performance/sync_gateway_default_performance_cc.json"
+    print("*** Resetting Cluster with {} ***".format(config))
+    cluster.reset_cluster(config)
 
     create_users(
         target=opts.target,

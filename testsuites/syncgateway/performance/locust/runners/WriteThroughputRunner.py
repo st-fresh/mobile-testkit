@@ -1,10 +1,55 @@
 import sys
-import subprocess
+import time
 import os
 
 from optparse import OptionParser
 
 from keywords.constants import RESULTS_DIR
+from keywords.ClusterKeywords import ClusterKeywords
+
+from UserCreationRunner import create_users
+from UserCreationRunner import validate_users
+from locust_runner import run_locust_scenario
+
+def write_docs(target, user_session_info, total_docs, doc_size):
+
+    clients = str(opts.num_writers)
+    num_request = str(total_docs)
+
+    print("*** LOCUST ***")
+    print("clients: {}".format(clients))
+    print("num_request: {}\n".format(num_request))
+    print("Using users from: {}".format(user_session_info))
+
+    print("*** Starting statsd ***")
+    print("Starting Server on :8125 ...\n")
+
+    print("*** Setting up environment ***\n")
+
+    # Set needed environment variables
+    os.environ["LOCUST_DOC_SIZE"] = str(doc_size)
+    os.environ["LOCUST_USER_SESSION_INFO"] = user_session_info
+
+    scenario = "WriteThroughput"
+
+    print("*** Running Locust: {} ***".format(scenario))
+    print("Environment:")
+    print("LOCUST_DOC_SIZE: {}".format(os.environ["LOCUST_DOC_SIZE"]))
+
+    start = time.time()
+
+    run_locust_scenario(
+        name=scenario,
+        target=target,
+        clients=clients,
+        num_request=num_request
+    )
+
+    doc_add_time = time.time() - start
+    print("Doc add took: {}s".format(doc_add_time))
+
+    print("*** Tearing down environment ***\n")
+
 
 def validate_opts(target, num_writers, num_channels, num_channels_per_doc, total_docs, doc_size):
 
@@ -86,63 +131,28 @@ if __name__ == "__main__":
         doc_size=opts.doc_size
     )
 
-    clients = str(opts.num_writers)
+    cluster = ClusterKeywords()
+    config = "resources/sync_gateway_configs/performance/sync_gateway_default_performance_cc.json"
+    print("*** Resetting Cluster with {} ***".format(config))
+    cluster.reset_cluster(config)
 
-    # POST _user + POST + _session = opts.num_writers * 2 requests
-    # POST docs = total_docs requests
-    num_requests = (opts.num_writers * 2) + opts.total_docs
-    num_request = str(num_requests)
+    # Create users / session and store info in tmp file
+    create_users(
+        target=opts.target,
+        num_writers=opts.num_writers,
+        num_channels=opts.num_channels,
+        num_channels_per_doc=opts.num_channels_per_doc
+    )
 
-    print("*** LOCUST ***")
-    print("clients: {}".format(clients))
-    print("num_request: {}\n".format(num_request))
+    # Read and validate user info
+    with open("user_tmp") as f:
+        user_session_info = f.read()
+    validate_users(opts.num_writers, user_session_info)
 
-    print("*** Starting statsd ***")
-    print("Starting Server on :8125 ...\n")
-
-    print("*** Setting up environment ***\n")
-
-    # Set needed environment variables
-    os.environ["LOCUST_NUM_CHANNELS"] = str(opts.num_channels)
-    os.environ["LOCUST_NUM_CHANNELS_PER_DOC"] = str(opts.num_channels_per_doc)
-
-    scenario = "WriteThroughputDef.py"
-
-    print("*** Running Locust ***")
-    print("Environment:")
-    print("LOCUST_NUM_CHANNELS: {}".format(os.environ["LOCUST_NUM_CHANNELS"]))
-    print("LOCUST_NUM_CHANNELS_PER_DOC: {}".format(os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]))
-    print("Scenario: {}\n".format(scenario))
-
-    results_path = "{}/perf/syncgateway/WriteThroughPut.txt".format(RESULTS_DIR)
-    with open(results_path, "w") as f:
-        locust_proc = subprocess.Popen(
-            [
-                "locust",
-                "--no-web",
-                "--loglevel", "DEBUG",
-                "--only-summary",
-                "--host", opts.target,
-                "--clients", clients,
-                "--hatch-rate", "50",
-                "--num-request", num_request,
-                "-f", "testsuites/syncgateway/performance/locust/{}".format(scenario)
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
-        )
-        for line in iter(locust_proc.stdout.readline, ''):
-            sys.stdout.write(line)
-            f.write(line)
-
-    print("*** Tearing down environment ***\n")
-
-    # Parse Values
-    with open(results_path) as f:
-        output = f.read()
-        print(output)
-
-    # Clean up environment variables
-    del os.environ["LOCUST_NUM_CHANNELS"]
-    del os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]
-
+    # Write docs using the provided users
+    write_docs(
+        target=opts.target,
+        user_session_info=user_session_info,
+        total_docs=opts.total_docs,
+        doc_size=opts.doc_size
+    )
