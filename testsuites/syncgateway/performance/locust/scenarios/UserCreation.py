@@ -9,6 +9,8 @@ import requests
 
 from locust import HttpLocust, TaskSet, task, events
 
+from keywords.utils import prepare_locust_client
+
 # Start statsd client
 stats_client = statsd.StatsClient("localhost", 8125, prefix="locust")
 
@@ -21,8 +23,14 @@ def incr_channel_index():
     global CHANNEL_INDEX
     CHANNEL_INDEX += 1
 
-class WriteThroughPut(TaskSet):
+USER_COUNT = 0
+USER_AUTH_DICT = {}
 
+LOCUSTS_DONE = 0
+
+class UserCreation(TaskSet):
+
+    num_clients = int(os.environ["LOCUST_NUM_CLIENTS"])
 
     def on_start(self):
         """
@@ -37,8 +45,9 @@ class WriteThroughPut(TaskSet):
                 channels ["ch_0", "ch_1"].
             3. Registers itself as a user on sync_gateway
             4. Create session authentication for the user on sync_gateway
+            5. Write {"user_id", "session_id"} dictionary for reading into other locust scenarios
         """
-        self.client.headers.update({"Content-Type": "application/json"})
+        prepare_locust_client(self.client)
 
         # build channels based on the LOCUST_NUM_CHANNELS and LOCUST_NUM_CHANNELS_PER_DOC
         num_channels = int(os.environ["LOCUST_NUM_CHANNELS"])
@@ -55,7 +64,10 @@ class WriteThroughPut(TaskSet):
             # Increment global counter
             incr_channel_index()
 
-        user_id = "user_{}".format(uuid.uuid4())
+        user_id = "user_{}".format(USER_COUNT)
+        global USER_COUNT
+        USER_COUNT += 1
+
         print("{} -> channels: {}".format(user_id, self.channels))
 
         data = {
@@ -65,7 +77,7 @@ class WriteThroughPut(TaskSet):
         }
 
         # Add user
-        self.client.put(":4985/db/_user/{}".format(user_id), data=json.dumps(data))
+        self.client.post(":4985/db/_user/", data=json.dumps(data))
 
         data = {
             "name": user_id,
@@ -74,66 +86,48 @@ class WriteThroughPut(TaskSet):
         resp = self.client.post(":4985/db/_session", data=json.dumps(data))
         session_info = resp.json()
 
-        requests.utils.add_dict_to_cookiejar(
-            self.client.cookies,
-            {"SyncGatewaySession": session_info["session_id"]}
-        )
+        USER_AUTH_DICT[user_id] = {"SyncGatewaySession": session_info["session_id"]}
 
-    @task
-    def add_doc(self):
-        data = {
-            "channels": self.channels,
-            "sample_prop" : "sample_value"
-        }
-        resp = self.client.post(":4984/db/", json.dumps(data))
+    @task(1)
+    def kill_locust(self):
+        """
+        Kill locust after user has been created
+        """
+        global LOCUSTS_DONE
+        LOCUSTS_DONE += 1
 
+        if LOCUSTS_DONE == self.num_clients:
+            with open("users_tmp", "w") as f:
+                f.write(json.dumps(USER_AUTH_DICT, indent=4))
 
-
-    # @task(10)
-    # def update_doc(self):
-    #     pass
-
-# 10000
+        self.interrupt()
 
 class SyncGatewayPusher(HttpLocust):
 
     weight = 1
 
-    task_set = WriteThroughPut
+    task_set = UserCreation
     min_wait = 100
     max_wait = 1000
 
-# class SyncGatewayPullers(HttpLocust):
-#
-#     # Open a changes feed and listen for docs, when one is recieve
-#     #   Calculate delta of now - creation and push this to time seriesdb
-#
-#     weight = 1
-#
-#     host = "http://192.168.33.13"
-#
-#     task_set = PullTask
-#     min_wait = 1000
-#     max_wait = 5000
-
-
-stats = {
-    "add_doc_time_total" : 0,
-    "add_doc_num": 0,
-    "add_docs_average_time": 0,
-}
-
 def on_request_success(request_type, name, response_time, response_length):
     """
-    Event handler that get triggered on every successful request
-
-    Process RTT
+    On each successful request:
+    1. Write user add time to statsd
+    2. Write session create time to statsd
     """
     # Write response_time to statsd
     if name.startswith("/db/_user/"):
         stats_client.timing('user_add_response_time', response_time)
-    elif name.startswith("/db/"):
-        stats_client.timing('doc_add_response_time', response_time)
+    elif name.startswith("/db/_session"):
+        stats_client.timing('doc_session_response_time', response_time)
+
+# def on_hatch_complete(user_count):
+#     pass
+    # print("Writing USER_AUTH_DICT ...")
+    # with open("users_tmp", "w") as f:
+    #     f.write(json.dumps(USER_AUTH_DICT))
 
 # Hook up the event listeners
 events.request_success += on_request_success
+#events.hatch_complete += on_hatch_complete
