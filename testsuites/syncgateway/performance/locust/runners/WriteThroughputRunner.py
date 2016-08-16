@@ -63,6 +63,8 @@ def validate_opts(target, num_writers, num_channels, num_channels_per_doc, total
 
     assert target is not None, "Make sure you have defined a sync_gateway target for locust, ex. ('http://192.168.33.11')"
     assert num_writers >= 0, "'num_writers' should be >= 0"
+    assert total_docs >= num_writers, "'total_docs' must be greater than or equal to 'num_writers'"
+    assert total_docs % num_writers == 0, "'total_docs' should be a multiple of 'num_writers'"
     assert num_channels >= 0, "'num_channels' should be >= 0"
     assert num_channels_per_doc >= 0, "'num_channels_per_doc' should be >= 0"
     assert total_docs >= 0, "'total_docs' should be >= 0"

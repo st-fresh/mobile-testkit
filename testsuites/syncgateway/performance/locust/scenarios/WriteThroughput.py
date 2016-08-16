@@ -4,6 +4,9 @@ import json
 import uuid
 import os
 import time
+import random
+import string
+import sys
 
 import statsd
 import requests
@@ -57,15 +60,33 @@ class WriteThroughPut(TaskSet):
         self.channels = resp_obj["admin_channels"]
         print("READY: user {} -> {}".format(self.user_id, self.channels))
 
+        # Calculte doc size and create doc body
+        doc_size_bytes = int(os.environ["LOCUST_DOC_SIZE"])
+        data = {
+            "channels": self.channels,
+            "dummy_data": ""
+        }
+        doc_structure_size = sys.getsizeof(json.dumps(data))
+
+        dummy_data_size = doc_size_bytes - doc_structure_size
+        dummy_data = "".join(random.choice(string.ascii_letters) for _ in xrange(dummy_data_size))
+        data["dummy_data"] = dummy_data
+        self.doc_body = json.dumps(data)
+
+        doc_body_size = sys.getsizeof(self.doc_body)
+
+        # Validate POST data == doc size
+        assert doc_body_size == doc_size_bytes, "self.doc_body ({}B) != doc_size_bytes ({}B)".format(
+            doc_body_size,
+            doc_size_bytes
+        )
+
     @task
     def add_doc(self):
-        # Wait until all locusts are hatched before issueing doc POSTs
+        # Make sure metric are reset before performing the scenario
         if LOCUSTS_HATCHED:
-            data = {
-                "channels": self.channels,
-                "sample_prop" : "sample_value"
-            }
-            self.client.post(":4984/db/", json.dumps(data))
+            # Generate a doc that is doc_size_bytes + the channels prop size
+            self.client.post(":4984/db/", self.doc_body)
             print("POST doc, user: {} channels: {}".format(self.user_id, self.channels))
             self.doc_write_count += 1
 
