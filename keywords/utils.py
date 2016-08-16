@@ -4,13 +4,6 @@ import json
 
 from robot.api.logger import console
 
-def prepare_locust_client(client):
-    """
-    Called in on_start of locust scenarios. Make sure client is prepared to
-    communicate with sync_gateway
-    """
-    client.headers.update({"Content-Type": "application/json"})
-
 def log_info(message):
     console(message)
     logging.info(message)

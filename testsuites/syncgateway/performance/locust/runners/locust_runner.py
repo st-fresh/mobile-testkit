@@ -11,7 +11,6 @@ def run_locust_scenario(name, target, clients):
             [
                 "locust",
                 "--no-web",
-                "--loglevel", "INFO",
                 "--only-summary",
                 "--host", target,
                 "--clients", clients,

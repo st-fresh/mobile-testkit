@@ -9,7 +9,7 @@ import requests
 
 from locust import HttpLocust, TaskSet, task, events
 
-from keywords.utils import prepare_locust_client
+from common import set_content_type
 
 # Start statsd client
 stats_client = statsd.StatsClient("localhost", 8125, prefix="locust")
@@ -29,6 +29,7 @@ USER_AUTH_DICT = {}
 class UserCreation(TaskSet):
 
     num_clients = int(os.environ["LOCUST_NUM_CLIENTS"])
+    user_prefix = os.environ["LOCUST_USER_PREFIX"]
 
     def on_start(self):
         """
@@ -45,7 +46,7 @@ class UserCreation(TaskSet):
             4. Create session authentication for the user on sync_gateway
             5. Write {"user_id", "session_id"} dictionary for reading into other locust scenarios
         """
-        prepare_locust_client(self.client)
+        set_content_type(self.client)
 
         # build channels based on the LOCUST_NUM_CHANNELS and LOCUST_NUM_CHANNELS_PER_DOC
         num_channels = int(os.environ["LOCUST_NUM_CHANNELS"])
@@ -62,7 +63,7 @@ class UserCreation(TaskSet):
             # Increment global counter
             incr_channel_index()
 
-        user_id = "user_{}".format(USER_COUNT)
+        user_id = "{}_{}".format(self.user_prefix, USER_COUNT)
         global USER_COUNT
         USER_COUNT += 1
 
@@ -101,15 +102,5 @@ def on_request_success(request_type, name, response_time, response_length):
     # Write response_time to statsd
     if name.startswith("/db/_user/"):
         stats_client.timing('user_add_response_time', response_time)
-    elif name.startswith("/db/_session"):
-        stats_client.timing('doc_session_response_time', response_time)
 
-# def on_hatch_complete(user_count):
-#     pass
-    # print("Writing USER_AUTH_DICT ...")
-    # with open("users_tmp", "w") as f:
-    #     f.write(json.dumps(USER_AUTH_DICT))
-
-# Hook up the event listeners
 events.request_success += on_request_success
-#events.hatch_complete += on_hatch_complete

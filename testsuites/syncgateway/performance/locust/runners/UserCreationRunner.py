@@ -11,14 +11,8 @@ from keywords.ClusterKeywords import ClusterKeywords
 
 from locust_runner import run_locust_scenario
 
-def validate_users(num_writers, user_session_info):
-    user_session_dict = json.loads(user_session_info)
-    for i in range(num_writers):
-        user = "user_{}".format(i)
-        assert user in user_session_dict
-        assert len(user_session_dict[user]["SyncGatewaySession"]) == 40
 
-def create_users(target, num_writers, num_channels, num_channels_per_doc):
+def create_users(target, user_prefix, num_writers, num_channels, num_channels_per_doc):
 
     clients = str(num_writers)
 
@@ -31,6 +25,7 @@ def create_users(target, num_writers, num_channels, num_channels_per_doc):
     print("*** Setting up environment ***\n")
 
     # Set needed environment variables
+    os.environ["LOCUST_USER_PREFIX"] = user_prefix
     os.environ["LOCUST_NUM_CLIENTS"] = str(clients)
     os.environ["LOCUST_NUM_CHANNELS"] = str(num_channels)
     os.environ["LOCUST_NUM_CHANNELS_PER_DOC"] = str(num_channels_per_doc)
@@ -55,11 +50,11 @@ def create_users(target, num_writers, num_channels, num_channels_per_doc):
 
     print("*** Tearing down environment ***\n")
     # Clean up environment variables
+    del os.environ["LOCUST_USER_PREFIX"]
     del os.environ["LOCUST_NUM_CLIENTS"]
     del os.environ["LOCUST_NUM_CHANNELS"]
     del os.environ["LOCUST_NUM_CHANNELS_PER_DOC"]
     del os.environ["LOCUST_USER_SESSION_INFO_PATH"]
-
 
 
 def validate_opts(target, num_writers, num_channels, num_channels_per_doc):
@@ -123,6 +118,7 @@ if __name__ == "__main__":
 
     create_users(
         target=opts.target,
+        user_prefix="user",
         num_writers=opts.num_writers,
         num_channels=opts.num_channels,
         num_channels_per_doc=opts.num_channels_per_doc
