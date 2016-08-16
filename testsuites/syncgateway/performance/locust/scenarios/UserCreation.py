@@ -26,10 +26,6 @@ def incr_channel_index():
 USER_COUNT = 0
 USER_AUTH_DICT = {}
 
-LOCUSTS_DONE = 0
-
-USER_SESSION_INFO_PATH = "user_tmp"
-
 class UserCreation(TaskSet):
 
     num_clients = int(os.environ["LOCUST_NUM_CLIENTS"])
@@ -81,28 +77,11 @@ class UserCreation(TaskSet):
         # Add user
         self.client.post(":4985/db/_user/", data=json.dumps(data))
 
-        data = {
-            "name": user_id,
-            "ttl": 500
-        }
-        resp = self.client.post(":4985/db/_session", data=json.dumps(data))
-        session_info = resp.json()
-
-        USER_AUTH_DICT[user_id] = {"SyncGatewaySession": session_info["session_id"]}
-
-    @task(1)
+    @task
     def kill_locust(self):
         """
         Kill locust after user has been created
         """
-        global LOCUSTS_DONE
-        LOCUSTS_DONE += 1
-
-        if LOCUSTS_DONE == self.num_clients:
-            # Write user / session info to file
-            with open(USER_SESSION_INFO_PATH, "w") as f:
-                f.write(json.dumps(USER_AUTH_DICT))
-
         self.interrupt()
 
 class SyncGatewayPusher(HttpLocust):

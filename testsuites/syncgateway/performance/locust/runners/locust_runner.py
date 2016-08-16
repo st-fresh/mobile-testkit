@@ -4,7 +4,7 @@ import sys
 from keywords.constants import RESULTS_DIR
 
 
-def run_locust_scenario(name, target, clients, num_request):
+def run_locust_scenario(name, target, clients):
     results_path = "{}/perf/syncgateway/{}.txt".format(RESULTS_DIR, name)
     with open(results_path, "w") as f:
         locust_proc = subprocess.Popen(
@@ -16,7 +16,6 @@ def run_locust_scenario(name, target, clients, num_request):
                 "--host", target,
                 "--clients", clients,
                 "--hatch-rate", "50",
-                "--num-request", num_request,
                 "-f", "testsuites/syncgateway/performance/locust/scenarios/{}.py".format(name)
             ],
             stdout=subprocess.PIPE,

@@ -11,15 +11,18 @@ from UserCreationRunner import create_users
 from UserCreationRunner import validate_users
 from locust_runner import run_locust_scenario
 
-def write_docs(target, user_session_info, total_docs, doc_size):
+def write_docs(target, num_writers, total_docs, doc_size):
 
     clients = str(opts.num_writers)
-    num_request = str(total_docs)
+
+    # number of POST _session +
+    # number of GET _user for channels +
+    # number of PUT docs
+    num_request = str((num_writers * 2) + total_docs)
 
     print("*** LOCUST ***")
     print("clients: {}".format(clients))
     print("num_request: {}\n".format(num_request))
-    print("Using users from: {}".format(user_session_info))
 
     print("*** Starting statsd ***")
     print("Starting Server on :8125 ...\n")
@@ -28,13 +31,14 @@ def write_docs(target, user_session_info, total_docs, doc_size):
 
     # Set needed environment variables
     os.environ["LOCUST_DOC_SIZE"] = str(doc_size)
-    os.environ["LOCUST_USER_SESSION_INFO"] = user_session_info
+    os.environ["LOCUST_NUM_WRITES_PER_USER"] = str(total_docs / num_writers)
 
     scenario = "WriteThroughput"
 
     print("*** Running Locust: {} ***".format(scenario))
     print("Environment:")
     print("LOCUST_DOC_SIZE: {}".format(os.environ["LOCUST_DOC_SIZE"]))
+    print("LOCUST_NUM_WRITES_PER_USER: {}".format(os.environ["LOCUST_NUM_WRITES_PER_USER"]))
 
     start = time.time()
 
@@ -42,13 +46,17 @@ def write_docs(target, user_session_info, total_docs, doc_size):
         name=scenario,
         target=target,
         clients=clients,
-        num_request=num_request
     )
 
     doc_add_time = time.time() - start
     print("Doc add took: {}s".format(doc_add_time))
 
     print("*** Tearing down environment ***\n")
+    del os.environ["LOCUST_DOC_SIZE"]
+    del os.environ["LOCUST_NUM_WRITES_PER_USER"]
+
+    # This is arbirary at the moment until we define KPIs
+    assert doc_add_time < 120, "Doc adds took longer than expected"
 
 
 def validate_opts(target, num_writers, num_channels, num_channels_per_doc, total_docs, doc_size):
@@ -144,15 +152,10 @@ if __name__ == "__main__":
         num_channels_per_doc=opts.num_channels_per_doc
     )
 
-    # Read and validate user info
-    with open("user_tmp") as f:
-        user_session_info = f.read()
-    validate_users(opts.num_writers, user_session_info)
-
     # Write docs using the provided users
     write_docs(
         target=opts.target,
-        user_session_info=user_session_info,
+        num_writers=opts.num_writers,
         total_docs=opts.total_docs,
         doc_size=opts.doc_size
     )

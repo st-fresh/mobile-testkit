@@ -20,17 +20,10 @@ def validate_users(num_writers, user_session_info):
 
 def create_users(target, num_writers, num_channels, num_channels_per_doc):
 
-
-
     clients = str(num_writers)
-
-    # POST _user + POST + _session = num_writers * 2 requests
-    num_requests = (num_writers * 2)
-    num_request = str(num_requests)
 
     print("*** LOCUST ***")
     print("clients: {}".format(clients))
-    print("num_request: {}\n".format(num_request))
 
     print("*** Starting statsd ***")
     print("Starting Server on :8125 ...\n")
@@ -56,7 +49,6 @@ def create_users(target, num_writers, num_channels, num_channels_per_doc):
         name=scenario,
         target=target,
         clients=clients,
-        num_request=num_request
     )
     user_creation_time = time.time() - start
     print("User creation took: {}s".format(user_creation_time))
