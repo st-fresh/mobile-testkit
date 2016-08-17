@@ -24,6 +24,7 @@ LOCUSTS_HATCHED = False
 class WriteThroughPut(TaskSet):
 
     num_writes_per_user = int(os.environ["LOCUST_NUM_WRITES_PER_USER"])
+    user_prefix = os.environ["LOCUST_USER_PREFIX"]
 
     def on_start(self):
         """
@@ -39,7 +40,7 @@ class WriteThroughPut(TaskSet):
         self.doc_write_count = 0
 
         global USER_INDEX
-        self.user_id = "user_{}".format(USER_INDEX)
+        self.user_id = "{}_{}".format(self.user_prefix, USER_INDEX)
         USER_INDEX += 1
 
         # Create session for user

@@ -11,7 +11,7 @@ from locust_runner import run_locust_scenario
 
 def write_docs(target, num_writers, total_docs, doc_size):
 
-    clients = str(opts.num_writers)
+    clients = str(num_writers)
 
     # number of POST _session +
     # number of GET _user for channels +
