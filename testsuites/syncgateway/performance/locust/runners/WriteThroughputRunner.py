@@ -9,7 +9,7 @@ from keywords.ClusterKeywords import ClusterKeywords
 from UserCreationRunner import create_users
 from locust_runner import run_locust_scenario
 
-def write_docs(target, num_writers, total_docs, doc_size):
+def write_docs(target, user_prefix, num_writers, total_docs, doc_size):
 
     clients = str(num_writers)
 
@@ -30,6 +30,8 @@ def write_docs(target, num_writers, total_docs, doc_size):
     # Set needed environment variables
     os.environ["LOCUST_DOC_SIZE"] = str(doc_size)
     os.environ["LOCUST_NUM_WRITES_PER_USER"] = str(total_docs / num_writers)
+    os.environ["LOCUST_USER_PREFIX"] = user_prefix
+
 
     scenario = "WriteThroughput"
 
@@ -52,6 +54,7 @@ def write_docs(target, num_writers, total_docs, doc_size):
     print("*** Tearing down environment ***\n")
     del os.environ["LOCUST_DOC_SIZE"]
     del os.environ["LOCUST_NUM_WRITES_PER_USER"]
+    del os.environ["LOCUST_USER_PREFIX"]
 
     # This is arbirary at the moment until we define KPIs
     assert doc_add_time < 120, "Doc adds took longer than expected"
@@ -156,6 +159,7 @@ if __name__ == "__main__":
     # Write docs using the provided users
     write_docs(
         target=opts.target,
+        user_prefix="user",
         num_writers=opts.num_writers,
         total_docs=opts.total_docs,
         doc_size=opts.doc_size
