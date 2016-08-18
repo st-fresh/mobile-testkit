@@ -36,5 +36,6 @@ robotframework-debuglibrary==0.4
 rsa==3.3
 s3transfer==0.0.1
 six==1.10.0
+statsd==3.2.1
 troposphere==1.5.0
 Werkzeug==0.11.10
