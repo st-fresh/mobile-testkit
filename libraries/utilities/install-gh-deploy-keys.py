@@ -69,6 +69,28 @@ def install_gh_deploy_keys(key_path, user_name):
             ), "sudo ssh-keyscan -t rsa github.com | sudo tee /root/.ssh/known_hosts"
         ])
 
+        ## ATTEMPTED WORKAROUND -- NOT WORKING
+        subprocess.check_output([
+            "ssh", "{}@{}".format(
+                user_name,
+                ip,
+            ), "mkdir -p /home/vagrant/.ssh"
+        ])
+        subprocess.check_output([
+            "ssh", "{}@{}".format(
+                user_name,
+                ip,
+            ), "cp /tmp/{} /home/vagrant/.ssh/id_rsa".format(
+                key_filename,
+            )
+        ])
+        subprocess.check_output([
+            "ssh", "{}@{}".format(
+                user_name,
+                ip,
+            ), "ssh-keyscan -t rsa github.com | sudo tee /home/vagrant/.ssh/known_hosts"
+        ])
+
 
 
 if __name__ == "__main__":
