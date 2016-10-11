@@ -97,7 +97,7 @@
     file: path=/opt/couchbase-sg-accel/bin state=directory
 
   - name: Copy sg_accel binary to /opt/
-    shell: cp /home/centos/godeps/bin/sync-gateway-accel /opt/couchbase-sg-accel/bin/
+    shell: cp /home/centos/godeps/bin/sync-gateway-accel /opt/couchbase-sg-accel/bin/sg_accel
 
 # Deploy sync gateway configs
 - hosts: sync_gateways
