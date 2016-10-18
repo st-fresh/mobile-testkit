@@ -40,11 +40,11 @@ def provision_cluster(cluster_config, couchbase_server_config, sync_gateway_conf
     clean_cluster(cluster_config)
 
     # Install server package
-    log_info("Installing Couchbase Server")
-    install_couchbase_server.install_couchbase_server(
-        cluster_config=cluster_config,
-        couchbase_server_config=couchbase_server_config
-    )
+    # log_info("Installing Couchbase Server")
+    # install_couchbase_server.install_couchbase_server(
+    #     cluster_config=cluster_config,
+    #     couchbase_server_config=couchbase_server_config
+    # )
 
     # Install sync_gateway
     log_info("Installing Sync Gateway")
