@@ -303,14 +303,15 @@ class User:
 
             for future in concurrent.futures.as_completed(future_to_docs):
                 doc = future_to_docs[future]
+                print("Update completed!!")
                 try:
                     doc_id = future.result()
                     logging.debug(doc_id)
                 except HTTPError as e:
-                    log.error("{0} {1} {2}".format(self.name, e.response.url, e.response.status_code))
+                    print("{0} {1} {2}".format(self.name, e.response.url, e.response.status_code))
                     errors.append((e.response.url, e.response.status_code))
                 else:
-                    log.debug("Document: {} updated successfully".format(doc))
+                    print("Document: {} updated successfully".format(doc))
 
         return errors
 
