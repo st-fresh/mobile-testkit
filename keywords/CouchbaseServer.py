@@ -180,7 +180,14 @@ class CouchbaseServer:
         }
 
         resp = requests.post("{}/pools/default/buckets".format(url), auth=self._auth, data=data)
-        log_r(resp)
+        log_info("{0} {1}\nHEADERS = {2}\nBODY = {3}".format(
+            resp.request.method,
+            resp.request.url,
+            resp.request.headers,
+            resp.request.body))
+
+        log_info("{}".format(resp.text))
+
         resp.raise_for_status()
 
         # Create client an retry until KeyNotFound error is thrown
