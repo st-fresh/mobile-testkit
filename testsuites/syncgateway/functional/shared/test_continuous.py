@@ -27,7 +27,7 @@ def continuous_changes_parametrized(cluster_conf, sg_conf, num_users, num_docs, 
     abc_doc_pusher = admin.register_user(target=cluster.sync_gateways[0], db="db", name="abc_doc_pusher", password="password", channels=["ABC"])
     doc_terminator = admin.register_user(target=cluster.sync_gateways[0], db="db", name="doc_terminator", password="password", channels=["TERMINATE"])
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
 
         futures = {executor.submit(user.start_continuous_changes_tracking, termination_doc_id="killcontinuous"): user.name for user in users}
         futures[executor.submit(abc_doc_pusher.add_docs, num_docs)] = "doc_pusher"
