@@ -177,7 +177,7 @@ def rest_scan(sync_gateway, db, online, num_docs, user_name, channels):
         error_responses.append((e.response.url, e.response.status_code))
 
     # wait for changes
-    time.sleep(2)
+    time.sleep(20)
 
     # GET /{db}/_changes
     try:
