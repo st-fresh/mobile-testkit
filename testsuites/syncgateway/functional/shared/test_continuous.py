@@ -40,7 +40,9 @@ def continuous_changes_parametrized(cluster_conf, sg_conf, num_users, num_docs, 
 
                 errors = future.result()
                 assert len(errors) == 0
-                abc_doc_pusher.update_docs(num_revs_per_doc=num_revisions)
+                update_errors = abc_doc_pusher.update_docs(num_revs_per_doc=num_revisions)
+                if update_errors != 0:
+                    raise AssertionError("Updating failed!!: {}".format(update_errors))
 
                 time.sleep(10)
 
