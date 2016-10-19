@@ -37,20 +37,32 @@ def continuous_changes_parametrized(cluster_conf, sg_conf, num_users, num_docs, 
 
             # Send termination doc to seth continuous changes feed subscriber
             if task_name == "doc_pusher":
-
-                errors = future.result()
-                assert len(errors) == 0
+                try:
+                    errors = future.result()
+                    assert len(errors) == 0
+                except Exception as exc:
+                    print("ERROR PUSHING DOCS: {}".format(str(exc.value)))
+                    raise AssertionError("Pushing docs failed")
                 update_errors = abc_doc_pusher.update_docs(num_revs_per_doc=num_revisions)
                 if len(update_errors) != 0:
                     raise AssertionError("Updating failed!!: {}".format(update_errors))
 
+                print("Sleeping")
+
                 time.sleep(10)
+
+                print("Pushing terminator doc.")
 
                 doc_terminator.add_doc("killcontinuous")
             elif task_name.startswith("user"):
                 # When the user has continuous _changes feed closed, return the docs and verify the user got all the channel docs
-                docs_in_changes = future.result()
+                try:
+                    docs_in_changes = future.result()
+                except Exception as exc:
+                    print("ERROR getting changes: {}".format(str(exc.value)))
+                    raise AssertionError("getting changes failed")
                 # Expect number of docs + the termination doc + _user doc
+                print("Verifying user: {}".format(task_name))
                 verify_same_docs(expected_num_docs=num_docs, doc_dict_one=docs_in_changes, doc_dict_two=abc_doc_pusher.cache)
 
     # Expect number of docs + the termination doc

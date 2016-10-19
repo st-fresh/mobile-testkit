@@ -289,6 +289,8 @@ class User:
 
     def update_docs(self, num_revs_per_doc=1, retries=False):
 
+        print("DOC_UPDATE: UPDATING DOCS".format())
+
         errors = list()
 
         if len(self.cache.keys()) == 0:
@@ -312,6 +314,8 @@ class User:
                     errors.append((e.response.url, e.response.status_code))
                 else:
                     print("Document: {} updated successfully".format(doc))
+
+        print("DOC_UPDATE: ERRORS: {}".format(errors))
 
         return errors
 
