@@ -7,6 +7,7 @@ import re
 import time
 
 from requests.exceptions import HTTPError
+from requests.sessions import Session
 
 from testkit.debug import log_request
 from testkit.debug import log_response
@@ -32,6 +33,8 @@ class User:
             auth = base64.b64encode("{0}:{1}".format(self.name, self.password).encode())
             self._auth = auth.decode("UTF-8")
             self._headers["Authorization"] = "Basic {}".format(self._auth)
+
+        self.session = Session()
 
     def __str__(self):
         return "USER: name={0} password={1} db={2} channels={3} cache={4}".format(self.name, self.password, self.db, self.channels, len(self.cache))
@@ -262,9 +265,9 @@ class User:
                     # This was using invalid construction of HTTP adapter and currently is not used anywhere.
                     # Retry behavior will be the same as regular behavior. This is a legacy API so just adding this
                     # to do execute the same behavior whether or not retries is specifiec
-                    put_resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+                    put_resp = self.session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
                 else:
-                    put_resp = requests.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
+                    put_resp = self.session.put(doc_url, headers=self._headers, data=body, timeout=settings.HTTP_REQ_TIMEOUT)
 
                 log.debug("{0} PUT {1}".format(self.name, resp.url))
 
