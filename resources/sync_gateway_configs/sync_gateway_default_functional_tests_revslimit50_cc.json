@@ -6,7 +6,7 @@
     "maxFileDescriptors": 90000,
     "slowServerCallWarningThreshold": 500,
     "compressResponses": false,
-    "log": ["CRUD+", "Cache+", "HTTP+", "Changes+"],
+    "log": ["*"],
     "databases":{
         "db":{
             "server":"http://{{ couchbase_server_primary_node }}:8091",
