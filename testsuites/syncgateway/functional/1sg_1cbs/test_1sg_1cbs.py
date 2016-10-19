@@ -66,7 +66,7 @@ def setup_1sg_1cbs_test(request):
     ("{}/sync_gateway_default_functional_tests_cc.json".format(SYNC_GATEWAY_CONFIGS), 1, 5000, 1),
     ("{}/sync_gateway_default_functional_tests_cc.json".format(SYNC_GATEWAY_CONFIGS), 50, 5000, 1),
     ("{}/sync_gateway_default_functional_tests_cc.json".format(SYNC_GATEWAY_CONFIGS), 50, 10, 10),
-    ("{}/sync_gateway_default_functional_tests_revslimit50_cc.json".format(SYNC_GATEWAY_CONFIGS), 50, 50, 500)
+    ("{}/sync_gateway_default_functional_tests_revslimit50_cc.json".format(SYNC_GATEWAY_CONFIGS), 50, 50, 1000)
 ])
 def test_continuous_changes_parametrized_cc(setup_1sg_1cbs_test, sg_conf, num_users, num_docs, num_revisions):
     continuous_changes_parametrized(
