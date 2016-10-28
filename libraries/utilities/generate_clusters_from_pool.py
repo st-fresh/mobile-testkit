@@ -262,7 +262,7 @@ def cluster_def_from_opts(opts):
 
 if __name__ == "__main__":
     usage = """
-    usage: python generate_cluster_from_pool.py"
+    usage: python generate_clusters_from_pool.py"
     """
 
     parser = OptionParser(usage=usage)
