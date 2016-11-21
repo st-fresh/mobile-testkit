@@ -1301,8 +1301,258 @@
               "show": true
             }
           ],
-          "repeatIteration": 1476704456838,
+          "repeatIteration": 1479746809272,
           "repeatPanelId": 2
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "title": "Syng Gateway - Active Changes Feeds",
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "type": "graph",
+          "isNew": true,
+          "id": 9,
+          "targets": [
+            {
+              "policy": "default",
+              "dsType": "influxdb",
+              "resultFormat": "time_series",
+              "tags": [],
+              "groupBy": [
+                {
+                  "type": "time",
+                  "params": [
+                    "$interval"
+                  ]
+                },
+                {
+                  "type": "tag",
+                  "params": [
+                    "host"
+                  ]
+                },
+                {
+                  "type": "fill",
+                  "params": [
+                    "null"
+                  ]
+                }
+              ],
+              "select": [
+                [
+                  {
+                    "type": "field",
+                    "params": [
+                      "changesFeeds_active"
+                    ]
+                  },
+                  {
+                    "type": "mean",
+                    "params": []
+                  }
+                ]
+              ],
+              "refId": "B",
+              "measurement": "syncgateway_expvar",
+              "alias": "$tag_host - active changes feeds"
+            }
+          ],
+          "datasource": "$perftestrundbs",
+          "renderer": "flot",
+          "yaxes": [
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            },
+            {
+              "label": null,
+              "show": true,
+              "logBase": 1,
+              "min": null,
+              "max": null,
+              "format": "short"
+            }
+          ],
+          "xaxis": {
+            "show": true
+          },
+          "grid": {
+            "threshold1": null,
+            "threshold2": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "lines": true,
+          "fill": 1,
+          "linewidth": 2,
+          "points": false,
+          "pointradius": 5,
+          "bars": false,
+          "stack": false,
+          "percentage": false,
+          "legend": {
+            "show": true,
+            "values": false,
+            "min": false,
+            "max": false,
+            "current": false,
+            "total": false,
+            "avg": false
+          },
+          "nullPointMode": "connected",
+          "steppedLine": false,
+          "tooltip": {
+            "value_type": "cumulative",
+            "shared": true,
+            "sort": 0,
+            "msResolution": true
+          },
+          "timeFrom": null,
+          "timeShift": null,
+          "aliasColors": {},
+          "seriesOverrides": [],
+          "links": []
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": "$perftestrundbs",
+          "editable": true,
+          "error": false,
+          "fill": 4,
+          "grid": {
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 4,
+          "interval": ">10s",
+          "isNew": true,
+          "legend": {
+            "alignAsTable": false,
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "null as zero",
+          "percentage": false,
+          "pointradius": 1,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$tag_host - memory : used",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "10s"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "host"
+                  ],
+                  "type": "tag"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "measurement": "mem",
+              "policy": "default",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "used"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "host",
+                  "operator": "=~",
+                  "value": "/^$sg_host$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Sync Gateway Memory",
+          "tooltip": {
+            "msResolution": true,
+            "shared": true,
+            "sort": 0,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "xaxis": {
+            "show": true
+          },
+          "yaxes": [
+            {
+              "format": "bytes",
+              "label": null,
+              "logBase": 10,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ]
         }
       ],
       "title": "New row"
@@ -1436,9 +1686,10 @@
       "title": "New row"
     },
     {
-      "collapse": false,
-      "editable": true,
+      "title": "New row",
       "height": "250px",
+      "editable": true,
+      "collapse": false,
       "panels": [
         {
           "aliasColors": {},
@@ -1612,142 +1863,12 @@
             }
           ]
         }
-      ],
-      "title": "New row"
-    },
-    {
-      "collapse": false,
-      "editable": true,
-      "height": "250px",
-      "panels": [
-        {
-          "aliasColors": {},
-          "bars": false,
-          "datasource": "$perftestrundbs",
-          "editable": true,
-          "error": false,
-          "fill": 4,
-          "grid": {
-            "threshold1": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2": null,
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "id": 4,
-          "interval": ">10s",
-          "isNew": true,
-          "legend": {
-            "alignAsTable": false,
-            "avg": false,
-            "current": false,
-            "max": false,
-            "min": false,
-            "show": true,
-            "total": false,
-            "values": false
-          },
-          "lines": true,
-          "linewidth": 2,
-          "links": [],
-          "nullPointMode": "null as zero",
-          "percentage": false,
-          "pointradius": 1,
-          "points": false,
-          "renderer": "flot",
-          "seriesOverrides": [],
-          "span": 12,
-          "stack": true,
-          "steppedLine": false,
-          "targets": [
-            {
-              "alias": "$tag_host - memory : used",
-              "dsType": "influxdb",
-              "groupBy": [
-                {
-                  "params": [
-                    "10s"
-                  ],
-                  "type": "time"
-                },
-                {
-                  "params": [
-                    "host"
-                  ],
-                  "type": "tag"
-                },
-                {
-                  "params": [
-                    "null"
-                  ],
-                  "type": "fill"
-                }
-              ],
-              "measurement": "mem",
-              "policy": "default",
-              "refId": "A",
-              "resultFormat": "time_series",
-              "select": [
-                [
-                  {
-                    "params": [
-                      "used"
-                    ],
-                    "type": "field"
-                  },
-                  {
-                    "params": [],
-                    "type": "mean"
-                  }
-                ]
-              ],
-              "tags": [
-                {
-                  "key": "host",
-                  "operator": "=~",
-                  "value": "/^$sg_host$/"
-                }
-              ]
-            }
-          ],
-          "timeFrom": null,
-          "timeShift": null,
-          "title": "Sync Gateway Memory",
-          "tooltip": {
-            "msResolution": true,
-            "shared": true,
-            "sort": 0,
-            "value_type": "cumulative"
-          },
-          "type": "graph",
-          "xaxis": {
-            "show": true
-          },
-          "yaxes": [
-            {
-              "format": "bytes",
-              "label": null,
-              "logBase": 10,
-              "max": null,
-              "min": null,
-              "show": true
-            },
-            {
-              "format": "short",
-              "label": null,
-              "logBase": 1,
-              "max": null,
-              "min": null,
-              "show": true
-            }
-          ]
-        }
-      ],
-      "title": "New row"
+      ]
     }
   ],
   "time": {
-    "from": "now/d",
-    "to": "now"
+    "from": "2016-10-18T04:11:19.504Z",
+    "to": "2016-10-18T16:16:06.480Z"
   },
   "timepicker": {
     "refresh_intervals": [
@@ -1778,8 +1899,9 @@
     "list": [
       {
         "current": {
-          "text": "jenkins-sync-gateway-perf-test-41",
-          "value": "jenkins-sync-gateway-perf-test-41"
+          "text": "jenkins-sync-gateway-perf-test-79",
+          "value": "jenkins-sync-gateway-perf-test-79",
+          "tags": []
         },
         "datasource": null,
         "hide": 0,
@@ -1839,8 +1961,73 @@
             "selected": false
           },
           {
+            "text": "jenkins-sync-gateway-perf-test-100",
+            "value": "jenkins-sync-gateway-perf-test-100",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-101",
+            "value": "jenkins-sync-gateway-perf-test-101",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-102",
+            "value": "jenkins-sync-gateway-perf-test-102",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-103",
+            "value": "jenkins-sync-gateway-perf-test-103",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-104",
+            "value": "jenkins-sync-gateway-perf-test-104",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-105",
+            "value": "jenkins-sync-gateway-perf-test-105",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-106",
+            "value": "jenkins-sync-gateway-perf-test-106",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-107",
+            "value": "jenkins-sync-gateway-perf-test-107",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-108",
+            "value": "jenkins-sync-gateway-perf-test-108",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-109",
+            "value": "jenkins-sync-gateway-perf-test-109",
+            "selected": false
+          },
+          {
             "text": "jenkins-sync-gateway-perf-test-11",
             "value": "jenkins-sync-gateway-perf-test-11",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-110",
+            "value": "jenkins-sync-gateway-perf-test-110",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-111",
+            "value": "jenkins-sync-gateway-perf-test-111",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-112",
+            "value": "jenkins-sync-gateway-perf-test-112",
             "selected": false
           },
           {
@@ -2006,11 +2193,101 @@
           {
             "text": "jenkins-sync-gateway-perf-test-41",
             "value": "jenkins-sync-gateway-perf-test-41",
-            "selected": true
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-42",
+            "value": "jenkins-sync-gateway-perf-test-42",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-43",
+            "value": "jenkins-sync-gateway-perf-test-43",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-44",
+            "value": "jenkins-sync-gateway-perf-test-44",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-45",
+            "value": "jenkins-sync-gateway-perf-test-45",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-46",
+            "value": "jenkins-sync-gateway-perf-test-46",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-47",
+            "value": "jenkins-sync-gateway-perf-test-47",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-48",
+            "value": "jenkins-sync-gateway-perf-test-48",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-49",
+            "value": "jenkins-sync-gateway-perf-test-49",
+            "selected": false
           },
           {
             "text": "jenkins-sync-gateway-perf-test-5",
             "value": "jenkins-sync-gateway-perf-test-5",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-50",
+            "value": "jenkins-sync-gateway-perf-test-50",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-51",
+            "value": "jenkins-sync-gateway-perf-test-51",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-52",
+            "value": "jenkins-sync-gateway-perf-test-52",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-53",
+            "value": "jenkins-sync-gateway-perf-test-53",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-54",
+            "value": "jenkins-sync-gateway-perf-test-54",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-55",
+            "value": "jenkins-sync-gateway-perf-test-55",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-56",
+            "value": "jenkins-sync-gateway-perf-test-56",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-57",
+            "value": "jenkins-sync-gateway-perf-test-57",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-58",
+            "value": "jenkins-sync-gateway-perf-test-58",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-59",
+            "value": "jenkins-sync-gateway-perf-test-59",
             "selected": false
           },
           {
@@ -2019,9 +2296,109 @@
             "selected": false
           },
           {
+            "text": "jenkins-sync-gateway-perf-test-60",
+            "value": "jenkins-sync-gateway-perf-test-60",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-61",
+            "value": "jenkins-sync-gateway-perf-test-61",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-62",
+            "value": "jenkins-sync-gateway-perf-test-62",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-63",
+            "value": "jenkins-sync-gateway-perf-test-63",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-64",
+            "value": "jenkins-sync-gateway-perf-test-64",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-65",
+            "value": "jenkins-sync-gateway-perf-test-65",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-66",
+            "value": "jenkins-sync-gateway-perf-test-66",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-67",
+            "value": "jenkins-sync-gateway-perf-test-67",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-68",
+            "value": "jenkins-sync-gateway-perf-test-68",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-69",
+            "value": "jenkins-sync-gateway-perf-test-69",
+            "selected": false
+          },
+          {
             "text": "jenkins-sync-gateway-perf-test-7",
             "value": "jenkins-sync-gateway-perf-test-7",
             "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-70",
+            "value": "jenkins-sync-gateway-perf-test-70",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-71",
+            "value": "jenkins-sync-gateway-perf-test-71",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-72",
+            "value": "jenkins-sync-gateway-perf-test-72",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-73",
+            "value": "jenkins-sync-gateway-perf-test-73",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-74",
+            "value": "jenkins-sync-gateway-perf-test-74",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-75",
+            "value": "jenkins-sync-gateway-perf-test-75",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-76",
+            "value": "jenkins-sync-gateway-perf-test-76",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-77",
+            "value": "jenkins-sync-gateway-perf-test-77",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-78",
+            "value": "jenkins-sync-gateway-perf-test-78",
+            "selected": false
+          },
+          {
+            "text": "jenkins-sync-gateway-perf-test-79",
+            "value": "jenkins-sync-gateway-perf-test-79",
+            "selected": true
           },
           {
             "text": "jenkins-sync-gateway-perf-test-8",
@@ -2029,173 +2406,8 @@
             "selected": false
           },
           {
-            "text": "jenkins-sync-gateway-perf-test-9",
-            "value": "jenkins-sync-gateway-perf-test-9",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-13",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-13",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-14",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-14",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-15",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-15",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-16",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-16",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-17",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-17",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-18",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-18",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-19",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-19",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-20",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-20",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-21",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-21",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-22",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-22",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-23",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-23",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-24",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-24",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-25",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-25",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-26",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-26",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-27",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-27",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-28",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-28",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-29",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-29",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-30",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-30",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-32",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-32",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-33",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-33",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-34",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-34",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-35",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-35",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-36",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-36",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-37",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-37",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-38",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-38",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-39",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-39",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-40",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-40",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-41",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-41",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-42",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-42",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-43",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-43",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-44",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-44",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-45",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-45",
-            "selected": false
-          },
-          {
-            "text": "jenkins-sync-gateway-perf-test-with-analytics-46",
-            "value": "jenkins-sync-gateway-perf-test-with-analytics-46",
+            "text": "jenkins-sync-gateway-perf-test-80",
+            "value": "jenkins-sync-gateway-perf-test-80",
             "selected": false
           }
         ],
@@ -2338,7 +2550,7 @@
   },
   "refresh": false,
   "schemaVersion": 12,
-  "version": 4,
+  "version": 2,
   "links": [],
   "gnetId": null
 }
