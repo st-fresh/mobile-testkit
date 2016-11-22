@@ -499,7 +499,13 @@
                   }
                 ]
               ],
-              "tags": []
+              "tags": [
+                {
+                  "key": "host",
+                  "operator": "=~",
+                  "value": "/^$lg_host$/"
+                }
+              ]
             },
             {
               "alias": "Gateload Roundtrip - P95",
@@ -525,18 +531,30 @@
               "select": [
                 [
                   {
+                    "type": "field",
                     "params": [
                       "95_percentile"
-                    ],
-                    "type": "field"
+                    ]
                   },
                   {
-                    "params": [],
-                    "type": "mean"
+                    "type": "mean",
+                    "params": []
+                  },
+                  {
+                    "type": "moving_average",
+                    "params": [
+                      "10"
+                    ]
                   }
                 ]
               ],
-              "tags": []
+              "tags": [
+                {
+                  "key": "host",
+                  "operator": "=~",
+                  "value": "/^$lg_host$/"
+                }
+              ]
             },
             {
               "alias": "Gateload Roundtrip - P99",
@@ -562,18 +580,30 @@
               "select": [
                 [
                   {
+                    "type": "field",
                     "params": [
                       "99_percentile"
-                    ],
-                    "type": "field"
+                    ]
                   },
                   {
-                    "params": [],
-                    "type": "mean"
+                    "type": "mean",
+                    "params": []
+                  },
+                  {
+                    "type": "moving_average",
+                    "params": [
+                      "10"
+                    ]
                   }
                 ]
               ],
-              "tags": []
+              "tags": [
+                {
+                  "key": "host",
+                  "operator": "=~",
+                  "value": "/^$lg_host$/"
+                }
+              ]
             }
           ],
           "timeFrom": null,
@@ -606,7 +636,8 @@
               "min": null,
               "show": true
             }
-          ]
+          ],
+          "interval": "5m"
         }
       ],
       "title": "New row"
@@ -2550,7 +2581,7 @@
   },
   "refresh": false,
   "schemaVersion": 12,
-  "version": 2,
+  "version": 3,
   "links": [],
   "gnetId": null
 }
