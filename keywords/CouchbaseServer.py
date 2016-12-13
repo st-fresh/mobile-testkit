@@ -151,7 +151,7 @@ class CouchbaseServer:
         total_avail_ram_mb = int(total_avail_ram_bytes / (1024 * 1024))
         n1ql_indexer_ram_mb = 512
         effective_avail_ram_mb = int(total_avail_ram_mb * ram_multiplier) - n1ql_indexer_ram_mb
-        per_bucket_ram_mb = 1024
+        per_bucket_ram_mb = 512
         log_info("total_avail_ram_mb: {} effective_avail_ram_mb: {} effective_avail_ram_mb: {}".format(total_avail_ram_mb, effective_avail_ram_mb, effective_avail_ram_mb))
         for bucket_name in bucket_names:
             log_info("Create bucket {} with per_bucket_ram_mb {}".format(bucket_name, per_bucket_ram_mb))
