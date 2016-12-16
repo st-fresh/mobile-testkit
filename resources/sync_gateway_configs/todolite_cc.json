@@ -9,7 +9,8 @@
       "users": {
         "GUEST": {"disabled": true}
       },
-      "sync": `
+      "sync":
+      `
 function(doc, oldDoc) {
   // NOTE this function is the same across the iOS, Android, and PhoneGap versions.
   if (doc.type == "task") {
