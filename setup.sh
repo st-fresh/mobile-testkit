@@ -19,14 +19,8 @@ fi
 python -m virtualenv --version
 if [ $? -ne 0 ]; then
     # Install virtual env
-    echo "Virtualenv not detected, running pip install virtualenv"
-    pip install virtualenv
-    python -m virtualenv --version
-    if [ $? -ne 0 ]; then
-	echo "Virtualenv installed but still not deteced"
-	return 1
-    fi
-    
+    echo "Virtualenv not detected, running pip install virtualenv.  If you don't have pip, run easy_install pip"
+    return 1
 fi
 
 currentdir=`pwd`
