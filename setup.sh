@@ -5,6 +5,9 @@
 # 3. Installs all pip packages required by this repo
 # 4. Adds custom library paths to your PYTHONPATH
 
+set -x
+set -e
+
 version=$(python -c 'import sys; print "{}.{}.{}".format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro)')
 
 if [[ $version == 2.7.* ]]; then
@@ -17,7 +20,7 @@ fi
 python -m virtualenv --version
 if [ $? -ne 0 ]; then
     # Install virtual env
-    "You need to 'pip install virtualenv' on the machine running tests"
+    echo "You need to 'pip install virtualenv' on the machine running tests"
     return 1
 fi
 
