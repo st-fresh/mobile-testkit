@@ -17,12 +17,12 @@ else
     return 1
 fi
 
-python -m virtualenv --version
+python -m virtualenv --version || true
 if [ $? -ne 0 ]; then
     # Install virtual env
     echo "Virtualenv not detected, running pip install virtualenv"
     pip install virtualenv
-    python -m virtualenv --version
+    python -m virtualenv --version || true
     if [ $? -ne 0 ]; then
 	echo "Virtualenv installed but still not deteced"
 	return 1
