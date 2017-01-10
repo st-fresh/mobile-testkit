@@ -60,6 +60,14 @@ def provision_cluster(cluster_config, couchbase_server_config, sync_gateway_conf
     log_info(">>> Done provisioning cluster...")
 
 
+def split_sync_gateway_version(sync_gateway_version):
+    version_build = sync_gateway_version.split("-")
+    if len(version_build) != 2:
+        raise Exception("Make sure the sync_gateway version follows pattern: 1.2.3-456")
+    sync_gateway_version = version_build[0]
+    sync_gateway_build = version_build[1]
+    return (sync_gateway_version, sync_gateway_build)    
+    
 if __name__ == "__main__":
     usage = """usage: python provision_cluster.py
     --server-version=<server_version_number>
@@ -122,12 +130,7 @@ if __name__ == "__main__":
     sync_gateway_build = None
 
     if opts.sync_gateway_version is not None:
-        version_build = opts.sync_gateway_version.split("-")
-        if len(version_build) != 2:
-            print("Make sure the sync_gateway version follows pattern: 1.2.3-456")
-            sys.exit(1)
-        sync_gateway_version = version_build[0]
-        sync_gateway_build = version_build[1]
+        sync_gateway_version, sync_gateway_build = split_sync_gateway_version(opts.sync_gateway_version)
 
     if opts.install_deps_flag:
         install_deps(cluster_conf)
