@@ -19,6 +19,7 @@ def get_remote_hosts_list(remote_hosts_file):
     with open(remote_hosts_file) as f:
         pools = json.load(f)
         remote_hosts_list = pools['ips']
+        return remote_hosts_list
 
 if __name__ == "__main__":
 
