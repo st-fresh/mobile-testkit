@@ -16,7 +16,7 @@ def setup_tunnel(target_host, target_port, remote_hosts_user, remote_hosts, remo
 
 def get_remote_hosts_list(remote_hosts_file):
     # Load hosts file as array
-    with open(args.remote_hosts_file) as f:
+    with open(remote_hosts_file) as f:
         pools = json.load(f)
         remote_hosts_list = pools['ips']
 
