@@ -61,7 +61,7 @@ def provision_cluster(cluster_config, couchbase_server_config, sync_gateway_conf
 
 
 def split_sync_gateway_version(sync_gateway_version):
-    version_build = opts.sync_gateway_version.split("-")
+    version_build = sync_gateway_version.split("-")
     if len(version_build) != 2:
         raise Exception("Make sure the sync_gateway version follows pattern: 1.2.3-456")
     sync_gateway_version = version_build[0]
