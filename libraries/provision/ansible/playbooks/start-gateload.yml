@@ -13,7 +13,7 @@
 
 - hosts: sync_gateways
   any_errors_fatal: true
-  sudo: true
+  become: yes
 
   # Copy machine stat collection script to sync_gateways
   tasks:
@@ -36,7 +36,7 @@
 
 - hosts: sg_accels
   any_errors_fatal: true
-  sudo: true
+  become: yes
 
   # Copy machine stat collection script to sg_accels
   tasks:
