@@ -7,7 +7,7 @@ from libraries.provision.ansible_runner import AnsibleRunner
 import generate_gateload_configs
 from keywords.exceptions import ProvisioningError
 from libraries.utilities.log_expvars import log_expvars
-
+from libraries.utilities.fetch_sync_gateway_profile import fetch_sync_gateway_profile
 
 def run_gateload_perf_test(number_pullers,
                            number_pushers,
@@ -63,17 +63,24 @@ def run_gateload_perf_test(number_pullers,
             rampup_interval_ms
         )
 
-    # Start gateload
+    # Start gateload and start profile collection
     print(">>> Starting gateload with {0} pullers and {1} pushers".format(number_pullers, number_pushers))
     status = ansible_runner.run_ansible_playbook(
         "start-gateload.yml",
-        extra_vars={},
+        extra_vars={"extrapath": "/usr/local/bin"},
     )
     assert status == 0, "Could not start gateload"
+
+    # TODO: Start profile collection, refactor out of start-gateload.yml
 
     # write expvars to file, will exit when gateload scenario is done
     print(">>> Logging expvars")
     log_expvars(cluster_config, test_run_id)
+
+    # TODO: Stop profile collection here (might need screen)
+
+    print(">>> Fetch Sync Gateway profile")
+    fetch_sync_gateway_profile(cluster_config, test_run_id)
 
 
 if __name__ == "__main__":

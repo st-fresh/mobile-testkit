@@ -1,5 +1,31 @@
 ---
 - hosts: load_generators
+  become: yes
+  tasks:
+  - name: Checks if the environment file already has an entry for the PATH
+    replace:
+      dest=/etc/environment
+      regexp="PATH=(.*)"
+      replace="PATH=\1"
+    register: checkIfPATHIsHere
+  - name: Add a PATH entry with {{extrapath}} if the PATH is not already defined
+    lineinfile: >
+      dest=/etc/environment
+      state=present
+      line="PATH={{extrapath}}"
+      regexp=''
+      insertafter=EOF
+    when: checkIfPATHIsHere.changed == false
+  - name: add {{extrapath}} to the PATH
+    lineinfile: >
+      dest=/etc/environment
+      state=present
+      backrefs=no
+      regexp="PATH=(["])((?!.?{{extrapath}}).?)(["])$"
+      line="PATH=\1\2:{{extra_path}}\3"
+    when: checkIfPATHIsHere.changed
+
+- hosts: load_generators
   any_errors_fatal: true
 
   # Kill gateload
@@ -59,6 +85,7 @@
 
 - hosts: load_generators
   any_errors_fatal: true
+  become: true
 
   # Deploy gateload script and start gateload
   tasks:
