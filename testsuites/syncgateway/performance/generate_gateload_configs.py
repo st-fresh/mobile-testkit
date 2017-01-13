@@ -90,7 +90,7 @@ def upload_gateload_config(cluster_config, gateload, sync_gateway, user_offset, 
     print("Wrote to file: {}".format(outfile))
 
     # transfer file to remote host
-    cmd = 'ansible {} -i {} -m copy -a "src={} dest=/home/centos/gateload_config.json" --user {}'.format(
+    cmd = 'ansible {} -i {} -m copy -a "src={} dest=/home/centos/gateload_config.json" --user {} --become'.format(
         gateload_inventory_hostname,
         cluster_config,
         outfile,
