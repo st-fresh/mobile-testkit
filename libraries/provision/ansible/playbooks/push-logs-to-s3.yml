@@ -1,0 +1,13 @@
+---
+- hosts: sync_gateways:sg_accels
+  become: yes
+
+  vars:
+    bucket_name:
+    log_dir_name:
+
+  tasks:
+  - name: List keys simple
+    s3:
+      bucket: "{{ bucket_name }}"
+      mode: list

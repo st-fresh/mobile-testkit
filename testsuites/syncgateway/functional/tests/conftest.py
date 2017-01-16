@@ -6,6 +6,7 @@ from keywords.ClusterKeywords import ClusterKeywords
 from keywords.Logging import Logging
 from keywords.SyncGateway import validate_sync_gateway_mode
 from keywords.SyncGateway import sync_gateway_config_path_for_mode
+from utilities import push_logs_to_s3
 
 from libraries.testkit import cluster
 
@@ -119,3 +120,5 @@ def params_from_base_test_setup(request, params_from_base_suite_setup):
     if request.node.rep_call.failed:
         logging_helper = Logging()
         logging_helper.fetch_and_analyze_logs(cluster_config=cluster_config, test_name=test_name)
+
+    push_logs_to_s3.push_logs_to_s3(cluster_config=cluster_config, bucket_name="test", log_dir_name="test")
