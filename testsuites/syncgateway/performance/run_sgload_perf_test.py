@@ -40,6 +40,8 @@ def run_sgload_on_single_loadgenerator(lgs_hosts, sgload_arg_list, sg_host):
 
 def execute_sgload(lgs_host, sgload_arg_list, sg_host):
 
+    log_info("Running sgload against target host: {}".format(sg_host))
+
     # Update the arg list the the appropriate SG
     sgload_arg_list_modified = add_sync_gateway_url(sgload_arg_list, sg_host)
 
@@ -75,6 +77,8 @@ def get_sync_gateways_hosts(cluster_config):
     # Get sync gateway ips from ansible inventory
     return get_hosts_by_type(cluster_config, "sync_gateways")
 
+def get_load_balancer_hosts(cluster_config):
+    return get_hosts_by_type(cluster_config, "load_balancers")
 
 def get_hosts_by_type(cluster_config, host_type="load_generators"):
     lgs_hosts = hosts_for_tag(cluster_config, host_type)
@@ -116,14 +120,19 @@ def run_sgload_perf_test(cluster_config, sgload_arg_list_main, skip_build_sgload
     # get load generator and sg hostnames
     lg_hosts_main = get_load_generators_hosts(cluster_config)
     sg_hosts_main = get_sync_gateways_hosts(cluster_config)
+    lbs_hosts_main = get_load_balancer_hosts()
 
-    # Get the first SG host from the list of SG hosts
-    sg_host_main = sg_hosts_main[0]
+    # By default, use the first SG host as the target_host
+    target_host = sg_hosts_main[0]
+
+    if len(lbs_hosts_main) > 0:
+        # if we have any load balancers, use that as the target host
+        target_host = lbs_hosts_main[0]
 
     run_sgload_on_single_loadgenerator(
         lg_hosts_main,
         sgload_arg_list_main,
-        sg_host_main
+        target_host
     )
 
     log_info("Finished")
