@@ -131,8 +131,3 @@ def setup_client_syncgateway_test(request, setup_client_syncgateway_suite):
         liteserv.stop()
         logging_helper.fetch_and_analyze_logs(cluster_config=cluster_config, test_name=test_name)
         raise
-    except Exception as e:
-        log_info(e)
-        # Save the logs and Rethrow the exception caught
-        logging_helper.fetch_and_analyze_logs(cluster_config=cluster_config, test_name=test_name)
-        raise
