@@ -1,5 +1,6 @@
 {
   "log": ["*"],
+  "adminInterface": "0.0.0.0:4985",
   "databases": {
     "grocery-sync": {
       "server":"http://{{ couchbase_server_primary_node }}:8091",
