@@ -23,7 +23,6 @@
                 "issuer":"https://accounts.google.com",
                 "client_id":"279085463427-tlkpjddl93h4k8mudu5ge50lhn36pomt.apps.googleusercontent.com",
                 "validation_key":"PL7NdqKW8if6qcdt-Wy3WqYc",
-                "callback_url":"http://localhost:4984/grocery-sync/_oidc_callback",
                 "register":true
             },
             "GoogleSignIn": {
