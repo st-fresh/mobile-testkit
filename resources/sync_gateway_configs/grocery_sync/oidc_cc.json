@@ -2,10 +2,8 @@
   "log": ["*"],
   "databases": {
     "grocery-sync": {
-      "server": "walrus:.",
-      "users": {
-        "GUEST": {"disabled": true}
-      },
+      "server":"http://{{ couchbase_server_primary_node }}:8091",
+      "bucket":"data-bucket",
       "unsupported": {
         "oidc_test_provider": {
           "enabled": true
