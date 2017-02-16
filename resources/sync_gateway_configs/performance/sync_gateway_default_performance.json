@@ -23,7 +23,7 @@
                 "bucket":"index-bucket",
                 "writer":{{ is_index_writer }}
             },
-            "rev_cache_size": 5000000
+            "rev_cache_size": 50000000
         }
     }
 }
