@@ -833,6 +833,9 @@ def test_client_to_sync_gateway_complex_replication_with_revs_limit(setup_client
     client.wait_for_replication_status_idle(url=ls_url, replication_id=repl_one)
     client.wait_for_replication_status_idle(url=ls_url, replication_id=repl_two)
 
+    # Wait for every doc to have a 101 conflict on client with polling timeout
+    client.wait_for_doc_conflicts(ls_url, ls_db, ls_db_docs)
+
     client.compact_database(url=ls_url, db=ls_db)
 
     # LiteServ should only have 20 revisions due to built in client revs limit
@@ -880,7 +883,10 @@ def test_client_to_sync_gateway_complex_replication_with_revs_limit(setup_client
 
     client.wait_for_no_replications(url=ls_url)
 
+    # Wait for every doc to have a 101 conflict on client with polling timeout
     client.delete_conflicts(url=ls_url, db=ls_db, docs=ls_db_docs)
+
+    # Wait for every doc to have a 101 conflict on client with polling timeout
     client.delete_conflicts(url=sg_url, db=sg_db, docs=ls_db_docs, auth=sg_session)
     client.delete_docs(url=ls_url, db=ls_db, docs=ls_db_docs)
 
