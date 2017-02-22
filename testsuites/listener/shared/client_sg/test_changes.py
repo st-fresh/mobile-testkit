@@ -12,6 +12,7 @@ from keywords.ChangesTracker import ChangesTracker
 @pytest.mark.listener
 @pytest.mark.syncgateway
 @pytest.mark.changes
+@pytest.mark.skip(reason="For testing 1.3.1 mac")
 def test_longpoll_changes_termination_timeout(setup_client_syncgateway_test):
     """https://github.com/couchbase/couchbase-lite-java-core/issues/1296
     1. Create 30 longpoll _changes in a loop (with timeout parameter = 5s)
@@ -55,6 +56,7 @@ def test_longpoll_changes_termination_timeout(setup_client_syncgateway_test):
 @pytest.mark.listener
 @pytest.mark.syncgateway
 @pytest.mark.changes
+@pytest.mark.skip(reason="For testing 1.3.1 mac")
 def test_longpoll_changes_termination_heartbeat(setup_client_syncgateway_test):
     """https://github.com/couchbase/couchbase-lite-java-core/issues/1296
     Create 30 longpoll _changes in a loop (with heartbeat parameter = 5s)
