@@ -23,6 +23,8 @@
 
     couchbase_server_bucket_type: couchbase
     couchbase_server_bucket_replica: 1
+    # Valid bucket eviction policies are [valueOnly|fullEviction]
+    couchbase_server_bucket_eviction_policy: fullEviction
 
     bucket_names:
     bucket_num: "{{ (bucket_names|count) }}"
@@ -42,7 +44,7 @@
 
   # Create buckets and wait
   - name: COUCHBASE SERVER | Create new buckets
-    shell: "{{ couchbase_server_home_path }}/bin/couchbase-cli bucket-create --cluster={{ couchbase_server_primary_node }}:{{ couchbase_server_admin_port }} --user={{ couchbase_server_admin }} --password={{ couchbase_server_password }} --bucket={{ item }} --bucket-type={{ couchbase_server_bucket_type }} --bucket-ramsize={{ couchbase_server_bucket_ram }} --bucket-replica={{ couchbase_server_bucket_replica }} --wait"
+    shell: "{{ couchbase_server_home_path }}/bin/couchbase-cli bucket-create --cluster={{ couchbase_server_primary_node }}:{{ couchbase_server_admin_port }} --user={{ couchbase_server_admin }} --password={{ couchbase_server_password }} --bucket={{ item }} --bucket-type={{ couchbase_server_bucket_type }} --bucket-ramsize={{ couchbase_server_bucket_ram }} --bucket-replica={{ couchbase_server_bucket_replica }} --bucket-eviction-policy={{ couchbase_server_bucket_eviction_policy }} --wait"
     with_items: "{{ bucket_names }}"
     when: couchbase_server_node == couchbase_server_primary_node
 
