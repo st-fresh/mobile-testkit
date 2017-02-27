@@ -256,7 +256,8 @@ class CouchbaseServer:
             "authType": "sasl",
             "proxyPort": "11211",
             "bucketType": "couchbase",
-            "flushEnabled": "1"
+            "flushEnabled": "1",
+            "evictionPolicy": "fullEviction"
         }
 
         resp = self._session.post("{}/pools/default/buckets".format(self.url), data=data)
