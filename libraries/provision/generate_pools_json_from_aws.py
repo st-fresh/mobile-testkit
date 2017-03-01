@@ -91,6 +91,62 @@ def get_public_dns_names_cloudformation_stack(stackname):
     # get public_dns_name for all instances
     return get_public_dns_names(instances_for_stack)
 
+def ip_to_ansible_group_for_cloudformation_stack(stackname):
+
+    """
+    Generate a dictionary like:
+
+    "ip_to_node_type": {
+       "s61702cnt72.sc.couchbase.com": "couchbase_servers",
+       "s61703cnt72.sc.couchbase.com": "couchbase_servers",
+       "s61704cnt72.sc.couchbase.com": "couchbase_servers",
+       "s61705cnt72.sc.couchbase.com": "sync_gateways",
+       ....
+    }
+    """
+
+    instances_for_stack = get_running_instances_for_cloudformation_stack(stackname)
+
+    ip_to_ansible_group = {}
+    for instance in instances_for_stack:
+        ansible_group = get_ansible_group_for_instance(instance)
+        ip_to_ansible_group[instance.public_dns_name] = ansible_group
+
+    return ip_to_ansible_group
+
+def get_ansible_group_for_instance(instance):
+
+    """
+    Given an ec2 instance:
+
+    1. Look for the "type" tag, which will be something like "couchbaserver", which is set in cloudformation template
+    2. Translate that to the expected "node_type" that corresponds to ansible group
+
+    NOTE regarding sg_accels:  they are tagged with type=syncgateway, but they also have a CacheType="writer" tag
+    that we can use to differentiate them from sync gateways
+
+    """
+
+    instance_type_to_ansible_group = {
+        "couchbaseserver": "couchbase_servers",
+        "syncgateway": "sync_gateways",
+        "gateload": "load_generators",
+        "loadbalancer": "load_balancers",
+        "loadgenerator": "load_generators",  # forwards compatibility after we rename this from "gateload" -> "loadgenerator"
+    }
+
+
+    if not 'Type' in instance.tags:
+        raise Exception("Expected 'Type' in instance tags, but did not find.  Instance: {}.  Tags: {}".format(instance, instance.tags))
+
+    instance_type = instance.tags['Type']
+    cache_type = ""
+    if instance_type == "syncgateway":
+        # Deal with special case for sg accels
+        if 'CacheType' in instance.tags:
+            return "sg_accels"
+
+    return instance_type_to_ansible_group[instance_type]
 
 def ip_to_ansible_group_for_cloudformation_stack(stackname):
 
