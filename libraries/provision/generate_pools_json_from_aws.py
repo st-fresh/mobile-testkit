@@ -68,13 +68,17 @@ def get_running_instances_for_cloudformation_stack(stackname):
     # find all ec2 instances for stack
     instances_for_stack = get_instances_for_stack(stackname)
 
-    # wait until stack ec2 instances are all in running state
-    wait_until_state(instances_for_stack, "running")
+    # block if any instances are still starting up
+    wait_until_none_in_state(instances_for_stack, ["pending", "rebooting"])
+
+    # filter out any non-running instances -- in the case of AutoScaleGroups there might be
+    # terminated instances lingering in the Cloudformation Stack set of resources
+    running_instances = [instance for instance in instances_for_stack if instance.state == "running"]
 
     # wait until all ec2 instances are listening on port 22
-    wait_until_sshd_port_listening(instances_for_stack)
+    wait_until_sshd_port_listening(running_instances)
 
-    return instances_for_stack
+    return running_instances
 
 
 def get_public_dns_names_cloudformation_stack(stackname):
@@ -129,6 +133,7 @@ def get_ansible_group_for_instance(instance):
     instance_type_to_ansible_group = {
         "couchbaseserver": "couchbase_servers",
         "syncgateway": "sync_gateways",
+        "sgaccel": "sg_accels",
         "gateload": "load_generators",
         "loadbalancer": "load_balancers",
         "loadgenerator": "load_generators",  # forwards compatibility after we rename this from "gateload" -> "loadgenerator"
@@ -145,7 +150,10 @@ def get_ansible_group_for_instance(instance):
         if 'CacheType' in instance.tags:
             return "sg_accels"
 
-    return instance_type_to_ansible_group[instance_type]
+    if instance_type in instance_type_to_ansible_group:
+        return instance_type_to_ansible_group[instance_type]
+    else:
+        return "unknown"
 
 def get_instances_for_stack(stackname):
     instances = []
@@ -190,34 +198,32 @@ def wait_until_stack_create_complete(stackname):
         time.sleep(5)
 
 
-def wait_until_state(instances, state):
+def wait_until_none_in_state(instances, disallowed_states):
 
     """
-    Wait until all instances are in the given state.  The instance_ids are
-    passed in case the instance objects need to be refreshed from AWS
+    Wait until none of the instances are in any of the given states.
     """
 
     instance_ids = [instance.id for instance in instances]
 
     for x in xrange(NUM_RETRIES):
 
-        print("Waiting for instances {} to be {}".format(instance_ids, state))
-        instances_not_in_state = []
-        all_instances_in_state = True
+        print("Making sure none of the instances {} are in states {}".format(instance_ids, disallowed_states))
+        instances_in_disallowed_states = []
         for instance in instances:
-            if instance.state != state:
-                instances_not_in_state.append(instance)
-                all_instances_in_state = False
+            for disallowed_state in disallowed_states:
+                if instance.state == disallowed_state:
+                    instances_in_disallowed_states.append(instance)
 
-        # if all instances were in the given state, we're done
-        if all_instances_in_state:
+        # if none instances were in any of the disallowed states, we're done
+        if len(instances_in_disallowed_states) == 0:
             return
 
         # otherwise ..
-        print("The following instances are not yet in state {}: {}.  Waiting will retry.. Iteration: {}".format(instances_not_in_state, state, x))
+        print("The following instances are in disallowed states {}: {}.  Waiting will retry.. Iteration: {}".format(instances_in_disallowed_states, disallowed_states, x))
         time.sleep(5)
 
-    raise Exception("Gave up waiting for instances {} to reach state {}".format(instance_ids, state))
+    raise Exception("Gave up waiting for instances {} to transition out of {}".format(instance_ids, disallowed_states))
 
 
 def wait_until_sshd_port_listening(instances):
@@ -227,6 +233,7 @@ def wait_until_sshd_port_listening(instances):
         print("Waiting for instances to be listening on port 22")
         all_instances_listening = True
         for instance in instances:
+
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 client_socket.connect((instance.ip_address, 22))
