@@ -65,14 +65,11 @@ def get_running_instances_for_cloudformation_stack(stackname):
     # wait for stack creation to finish
     wait_until_stack_create_complete(stackname)
 
-    # find all ec2 instance ids for stack
-    instance_ids_for_stack = get_instance_ids_for_stack(stackname)
-
-    # get list of instance objects from ids
-    instances_for_stack = lookup_instances_from_ids(instance_ids_for_stack)
+    # find all ec2 instances for stack
+    instances_for_stack = get_instances_for_stack(stackname)
 
     # wait until stack ec2 instances are all in running state
-    wait_until_state(instances_for_stack, instance_ids_for_stack, "running")
+    wait_until_state(instances_for_stack, "running")
 
     # wait until all ec2 instances are listening on port 22
     wait_until_sshd_port_listening(instances_for_stack)
@@ -135,62 +132,6 @@ def get_ansible_group_for_instance(instance):
         "gateload": "load_generators",
         "loadbalancer": "load_balancers",
         "loadgenerator": "load_generators",  # forwards compatibility after we rename this from "gateload" -> "loadgenerator"
-    }
-
-    if 'Type' not in instance.tags:
-        raise Exception("Expected 'Type' in instance tags, but did not find.  Instance: {}.  Tags: {}".format(instance, instance.tags))
-
-    instance_type = instance.tags['Type']
-    if instance_type == "syncgateway":
-        # Deal with special case for sg accels
-        if 'CacheType' in instance.tags:
-            return "sg_accels"
-
-    return instance_type_to_ansible_group[instance_type]
-
-def ip_to_ansible_group_for_cloudformation_stack(stackname):
-
-    """
-    Generate a dictionary like:
-
-    "ip_to_node_type": {
-       "s61702cnt72.sc.couchbase.com": "couchbase_servers",
-       "s61703cnt72.sc.couchbase.com": "couchbase_servers",
-       "s61704cnt72.sc.couchbase.com": "couchbase_servers",
-       "s61705cnt72.sc.couchbase.com": "sync_gateways",
-       ....
-    }
-    """
-
-    instances_for_stack = get_running_instances_for_cloudformation_stack(stackname)
-
-    ip_to_ansible_group = {}
-    for instance in instances_for_stack:
-        ansible_group = get_ansible_group_for_instance(instance)
-        ip_to_ansible_group[instance.public_dns_name] = ansible_group
-
-    return ip_to_ansible_group
-
-
-def get_ansible_group_for_instance(instance):
-
-    """
-    Given an ec2 instance:
-
-    1. Look for the "type" tag, which will be something like "couchbaserver", which is set in cloudformation template
-    2. Translate that to the expected "node_type" that corresponds to ansible group
-
-    NOTE regarding sg_accels:  they are tagged with type=syncgateway, but they also have a CacheType="writer" tag
-    that we can use to differentiate them from sync gateways
-
-    """
-
-    instance_type_to_ansible_group = {
-        "couchbaseserver": "couchbase_servers",
-        "syncgateway": "sync_gateways",
-        "gateload": "load_generators",
-        "loadbalancer": "load_balancers",
-        "loadgenerator": "load_generators",  # forwards compatibility in case we rename this from "gateload" -> "loadgenerator"
         "unknown": "unknown",
     }
 
@@ -206,29 +147,10 @@ def get_ansible_group_for_instance(instance):
 
     return instance_type_to_ansible_group[instance_type]
 
-
-def get_instance_ids_for_stack(stackname):
-    """
-    For a given cloudformation stack, return all of the instance ids, eg
-    ["i-f1430877", "i-g3430877", ...]
-    """
-    instance_ids_for_stack = []
-    region = cloudformation.connect_to_region(DEFAULT_REGION)
-    stack_resources = region.describe_stack_resources(stackname)
-    for stack_resource in stack_resources:
-        if stack_resource.resource_type == "AWS::EC2::Instance":
-            instance_ids_for_stack.append(stack_resource.physical_resource_id)
-    return instance_ids_for_stack
-
-
-def lookup_instances_from_ids(instance_ids):
-    """
-    Given an array of instance ids, lookup the instance objects
-    which will have all the metadata
-    """
+def get_instances_for_stack(stackname):
     instances = []
     region = ec2.connect_to_region(DEFAULT_REGION)
-    reservations = region.get_all_instances(instance_ids)
+    reservations = region.get_all_instances(filters={'tag:aws:cloudformation:stack-name':stackname})
     for reservation in reservations:
         for instance in reservation.instances:
             instances.append(instance)
@@ -268,12 +190,14 @@ def wait_until_stack_create_complete(stackname):
         time.sleep(5)
 
 
-def wait_until_state(instances, instance_ids, state):
+def wait_until_state(instances, state):
 
     """
     Wait until all instances are in the given state.  The instance_ids are
     passed in case the instance objects need to be refreshed from AWS
     """
+
+    instance_ids = [instance.id for instance in instances]
 
     for x in xrange(NUM_RETRIES):
 
@@ -292,7 +216,6 @@ def wait_until_state(instances, instance_ids, state):
         # otherwise ..
         print("The following instances are not yet in state {}: {}.  Waiting will retry.. Iteration: {}".format(instances_not_in_state, state, x))
         time.sleep(5)
-        instances = lookup_instances_from_ids(instance_ids)
 
     raise Exception("Gave up waiting for instances {} to reach state {}".format(instance_ids, state))
 
